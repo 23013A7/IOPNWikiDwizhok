@@ -11,3 +11,9 @@
     border-bottom: 1px solid gray;
     margin: 16px 0px;
 }
+
+@media (max-width: 768px) {
+    .content h1 {
+        font-size: 32px;
+    }
+}
