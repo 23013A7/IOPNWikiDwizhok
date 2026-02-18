@@ -1,0 +1,13 @@
+.content h1 {
+    font-weight: 300;
+    font-size: 42px;
+    border-bottom: 1px solid gray;
+    margin: 16px 0px;
+}
+
+.content h2 {
+    font-weight: 300;
+    font-size: 26px;
+    border-bottom: 1px solid gray;
+    margin: 16px 0px;
+}
