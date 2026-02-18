@@ -10,7 +10,7 @@
         $NamePage = "Главная страница";
     }
 
-    $NamePage = preg_replace('/[^a-zA-Zа-яА-Я0-9_\- —]/u', '', $NamePage);
+    $NamePage = preg_replace('/[^a-zA-Zа-яА-Я0-9_\- —()]/u', '', $NamePage);
     if (empty($NamePage)) {
         $NamePage = "Некорректное имя страницы (Служебная)";
     }
