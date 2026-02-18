@@ -20,7 +20,7 @@
     }  elseif (is_file("Page/Pages/$NamePage.iopnwiki")) {
         $input = file_get_contents("Page/Pages/$NamePage.iopnwiki");
     } else {
-        $input = file_get_contents("Page/Save/Нету.iopnwiki");
+        $input = file_get_contents("Page/Save/Отсутсвующия страница (Служебная).iopnwiki");
     }
 
     require_once("wiky.inc.php");
