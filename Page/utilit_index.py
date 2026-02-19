@@ -27,9 +27,9 @@ def main():
         with open(output_file, 'w', encoding='utf-8') as f:
             for name in sorted(pages):
                 f.write(name + '\n')
-        print(f"Готово. Записано {len(pages)} имён в {output_file}")
+        print(f"Завершино найдено {len(pages)} статей в {output_file}")
     else:
-        print("Файлы .iopnwiki не найдены в папках Pages и Save.")
+        print("Файлы iopnwiki не найдены в указангых папках")
 
 if __name__ == '__main__':
     main()
