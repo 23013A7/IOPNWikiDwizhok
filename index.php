@@ -35,13 +35,22 @@
     <title>ИОПН — Энциклопедия <?= htmlspecialchars($NamePage) ?></title>
     <link rel="stylesheet" href="./css/base.css">
     <link rel="shortcut icon" href="../img/Favicons/Logo.ico">
-    
+<!-- Опен граф -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="http://iopn.ddns.net/Энциклопедия">
     <meta property="og:title" content="<?= htmlspecialchars($NamePage) ?>">
     <meta property="og:description" content="Краткое описание страницы (до 160–200 символов)">
     <meta property="og:site_name" content="ИОПН — Энциклопедия">
     <meta property="og:locale" content="ru_RU">
+
+    <script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]   // <- включает одиночные доллары
+  }
+};
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 
 </head>
 <body>
