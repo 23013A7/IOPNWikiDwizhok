@@ -26,7 +26,7 @@
     require_once("wiky.inc.php");
     $wiky=new wiky;
     $input=htmlspecialchars($input);
-    
+    $open_grab = mb_substr($input, 0, 160, 'UTF-8');
 ?>
 <html lang="ru">
 <head>
@@ -39,19 +39,21 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="http://iopn.ddns.net/Энциклопедия">
     <meta property="og:title" content="<?= htmlspecialchars($NamePage) ?>">
-    <meta property="og:description" content="Краткое описание страницы (до 160–200 символов)">
+    <meta property="og:description" content="<?= htmlspecialchars($open_grab) ?>…">
     <meta property="og:site_name" content="ИОПН — Энциклопедия">
     <meta property="og:locale" content="ru_RU">
 
     <script>
-MathJax = {
-  tex: {
-    inlineMath: [['$', '$'], ['\\(', '\\)']]   // включает одиночные доллары
-  }
-  options: {
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']], // включает одиночные доллары
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
                 enableMenu: false
             },
-};
+            svg: { fontCache: 'global' }
+        };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 
