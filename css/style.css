@@ -1,0 +1,47 @@
+@import url(../../css/base.css);
+
+.content h1 {
+    font-weight: 300;
+    font-size: 42px;
+    border-bottom: 1px solid gray;
+    margin: 16px 0px;
+}
+
+.content h2 {
+    font-weight: 300;
+    font-size: 26px;
+    border-bottom: 1px solid gray;
+    margin: 16px 0px;
+}
+
+.content p {
+    margin: 16px 0px;
+}
+
+.content li {
+    list-style:circle;
+    margin-left: 25px;
+}
+
+em {
+    font-size: 19px;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+a {
+    color: rgb(42, 86, 143)
+}
+
+.End {
+    margin-bottom: 50px;
+}
+
+@media (max-width: 768px) {
+    .content h1 {
+        font-size: 32px;
+    }
+
+    em {
+        font-size: 16px;
+    }
+}
