@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Domine&family=Geologica:wght,CRSV@300,1&family=Oranienbaum&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    list-style: none;
+    border: none;
+    outline: none;
+}
+
+:root {
+    --TextColor: black;
+    --BackgroundBody: seashell;
+    --BackgroundDrugoen: white; 
+  }
+
+body {
+    font-family: "Geologica", sans-serif;
+    color:black;
+    background-color: var(--BackgroundBody);
+}
+
+main {
+    padding-top: 135px ;
+}
+
+.content {
+    max-width: 60%;
+    color: var(--TextColor);
+    margin: 0 auto;
+}
+
+header {
+    background-color: rgba(255, 255, 255, 0.63);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0;
+    margin: 0 auto;
+    z-index: 1487;
+}
+
+/*Лого*/
+
+header .Logo {
+    height: 45px;
+}
+
+header .HeaderBorder {
+    max-width: 88%;
+    padding: 20px 0;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+header nav ul {
+    display: flex;
+    gap: 24px;
+}
+
+header a {
+    color: var(--TextColor);
+}
+
+.SubLogo {
+    color: var(--TextColor);
+}
+
+.LogoDiv {
+    display: flex; 
+    font-size: 32px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --TextColor: white;
+    --BackgroundBody: rgb(31, 31, 31);
+    --BackgroundDrugoen: Black; 
+  }
+  header {
+        background-color: rgba(36, 36, 36, 0.63);
+    }
+}
+
+@media (max-width: 768px) {
+  .content {
+    max-width: 90%;
+  }
+  
+  main {
+    padding-top: 100px ;
+    }
+}
