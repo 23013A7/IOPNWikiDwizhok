@@ -1,5 +1,6 @@
-@import url(../../css/base.css);
+@import url(../../css/base_style.css);
 
+/* Заголовки */
 .content h1 {
     font-weight: 300;
     font-size: 42px;
@@ -13,29 +14,29 @@
     border-bottom: 1px solid gray;
     margin: 16px 0px;
 }
-
+/* Параграф */
 .content p {
     margin: 16px 0px;
 }
-
+/* Списки */
 .content li {
     list-style:circle;
     margin-left: 25px;
 }
-
+/* Курсви */
 em {
     font-size: 19px;
     font-family: 'Times New Roman', Times, serif;
 }
-
+/* Сылки */
 a {
     color: rgb(42, 86, 143)
 }
-
+/* Удлитнителоь коцна */
 .End {
     margin-bottom: 50px;
 }
-
+/* Адаптация */
 @media (max-width: 768px) {
     .content h1 {
         font-size: 32px;
