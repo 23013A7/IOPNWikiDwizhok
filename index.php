@@ -33,9 +33,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ИОПН — Энциклопедия <?= htmlspecialchars($NamePage) ?></title>
-    <link rel="stylesheet" href="./css/base.css">
+    <link rel="stylesheet" href="./css/style.css">
     <link rel="shortcut icon" href="../img/Favicons/Logo.ico">
 <!-- Опен граф -->
+    <meta name="theme-color" content="#FECC6D">
     <meta property="og:type" content="website">
     <meta property="og:url" content="http://iopn.ddns.net/Энциклопедия">
     <meta property="og:title" content="<?= htmlspecialchars($NamePage) ?>">
