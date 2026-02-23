@@ -20,6 +20,7 @@ body {
     font-family: "Geologica", sans-serif;
     color:black;
     background-color: var(--BackgroundBody);
+    overflow-x: hidden;
 }
 
 main {
@@ -88,8 +89,8 @@ header a {
     display: inline-block;
     vertical-align: middle;
     color: #000;
+    margin-right: 5px;
 }
-
 
 /* Р‘Р°Р·РѕРІС‹Рµ СЃС‚РёР»Рё РґР»СЏ info-panel */
 .info-panel {
