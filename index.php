@@ -17,10 +17,13 @@
 
     if (is_file("Page/Save/$NamePage.iopnwiki")) {
         $input = file_get_contents("Page/Save/$NamePage.iopnwiki");
+        $file_a = "Page/Save/$NamePage.iopnwiki";
     }  elseif (is_file("Page/Pages/$NamePage.iopnwiki")) {
         $input = file_get_contents("Page/Pages/$NamePage.iopnwiki");
+        $file_a = "Page/Pages/$NamePage.iopnwiki";
     } else {
         $input = file_get_contents("Page/Save/Отсутсвующия страница (Служебная).iopnwiki");
+        $file_a = "Page/Save/Отсутсвующия страница (Служебная).iopnwiki";
     }
     // БЛОК ЧТЕНИЯ МЕТАДАННЫХ
     $meta_pos = strpos($input, "\n");
