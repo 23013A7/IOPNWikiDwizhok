@@ -22,6 +22,30 @@
     } else {
         $input = file_get_contents("Page/Save/Отсутсвующия страница (Служебная).iopnwiki");
     }
+    // БЛОК ЧТЕНИЯ МЕТАДАННЫХ
+    $meta_pos = strpos($input, "\n");
+
+    $meta_json = substr($input, 0, $meta_pos);
+    $input_save = $input;
+    $input = substr($input, $meta_pos + 1);
+
+
+    $meta_data = json_decode($meta_json, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        //echo "Ошибка чтения метаданных: " . json_last_error_msg();
+        $input = $input_save;
+    } else {
+        if (isset($meta_data['views'])) {
+            $meta_data['views']++;
+        } else {
+            $meta_data['views'] = 1;
+        }
+        // Создания первой строки с мета данными
+        $new_meta_json = json_encode($meta_data, JSON_UNESCAPED_UNICODE);
+        $new_content = $new_meta_json . "\n" . $input;
+        file_put_contents($file_a, $new_content);
+    }
 
     require_once("wiky.inc.php");
     $wiky=new wiky;
@@ -83,7 +107,29 @@
     </header>
     <main>
         <div class="content">
-            <h1 id="NamePage"><?= htmlspecialchars($NamePage) ?></h1>
+            <h1 id="NamePage">
+                <?= htmlspecialchars($NamePage) ?>
+                
+                <span class="info">
+            <svg class="icon" width=30px height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 16V12M12 8H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            <div class="info-panel right" style="min-width: 250px; padding: 15px;">
+                <div style="font-size:16px; position:relative; margin: -10px 10px;">
+                    <?php
+                        echo "<h2>Мета информация страницы:</h2>
+                        <p id=\"mate_data_create\"><strong>Просмотры: </strong>" . htmlspecialchars($meta_data['views']) . "</p>
+                        <p id=\"mate_data_create\"><strong>Дата создания: </strong>" . htmlspecialchars($meta_data['data_create']) . "</p>
+                        <p id=\"mate_data_create\"><strong>Дата обновления: </strong>" . htmlspecialchars($meta_data['data_update']) . "</p>
+                        <p id=\"mate_data_create\"><strong>Автор: </strong>" . htmlspecialchars($meta_data['author']) . "</p>
+                        <p id=\"mate_data_create\"><strong>Статус: </strong>" . htmlspecialchars($meta_data['status']) . "</p>
+                        <p id=\"mate_data_create\"><strong>Дата назначения статуса: </strong>" . htmlspecialchars($meta_data['data_status']) . "</p>
+                        <p id=\"mate_data_create\"><strong>Версия файла iopnwiki: </strong>" . htmlspecialchars($meta_data['version']) . "</p>";
+                    ?>
+                </div>
+            </div>
+            </span>
+            </h1>
             <div id="Root">
                 <?php echo $wiky->parse($input); ?>
             </div>
