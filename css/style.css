@@ -23,9 +23,11 @@
     margin: 16px 0px;
 }
 /* Списки */
-.content li {
+.content #Root li {
     list-style:circle;
     margin-left: 25px;
+    overflow-x: visible;
+    overflow-y: visible;
 }
 /* Курсви */
 em {
@@ -50,3 +52,4 @@ a {
         font-size: 16px;
     }
 }
+
