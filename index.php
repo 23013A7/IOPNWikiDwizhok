@@ -53,7 +53,7 @@
     require_once("wiky.inc.php");
     $wiky=new wiky;
     $input=htmlspecialchars($input);
-    $open_grab = mb_substr($input, 0, 160, 'UTF-8');
+    $open_grab = mb_substr($wiky->parse($input), 0, 160, 'UTF-8');
 ?>
 <html lang="ru">
 <head>
