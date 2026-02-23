@@ -188,4 +188,8 @@ header a {
   .icon {
     margin: 8px 0px;
   }
+  header nav{
+    display: none;
+  }
 }
+
