@@ -80,7 +80,6 @@ header a {
     margin: 20px 0px;
     cursor: pointer;
     float: right;
-    
 }
 
 .info {
@@ -169,7 +168,7 @@ header a {
   :root {
     --TextColor: white;
     --BackgroundBody: rgb(31, 31, 31);
-    --BackgroundDrugoen: Black; 
+    --BackgroundDrugoen: Black;
   }
   header {
         background-color: rgba(36, 36, 36, 0.63);
@@ -183,5 +182,9 @@ header a {
   
   main {
     padding-top: 100px ;
-    }
+  }
+
+  .icon {
+    margin: 8px 0px;
+  }
 }
