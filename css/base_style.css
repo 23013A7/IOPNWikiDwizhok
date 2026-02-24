@@ -81,6 +81,7 @@ header a {
     margin: 20px 0px;
     cursor: pointer;
     float: right;
+    color: var(--TextColor);
 }
 
 .info {
@@ -192,4 +193,5 @@ header a {
     display: none;
   }
 }
+
 
