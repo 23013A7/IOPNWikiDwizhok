@@ -168,12 +168,12 @@ header a {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --TextColor: white;
-    --BackgroundBody: rgb(31, 31, 31);
-    --BackgroundDrugoen: Black;
+    --TextColor: #ffffff;
+    --BackgroundBody: rgb(20 21 25);
+    --BackgroundDrugoen: #000000;
   }
   header {
-        background-color: rgba(36, 36, 36, 0.63);
+        background-color: rgb(0 0 0 / 63%);
     }
 }
 
@@ -193,5 +193,6 @@ header a {
     display: none;
   }
 }
+
 
 
