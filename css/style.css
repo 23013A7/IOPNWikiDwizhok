@@ -2,6 +2,22 @@
 
 .content #Root * {
     overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.content #Root mjx-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.content #Root mjx-container * {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.content #Root mjx-dbox {
+    overflow-x: hidden;
+    overflow-y: hidden;
 }
 
 /* Заголовки */
@@ -52,4 +68,5 @@ a {
         font-size: 16px;
     }
 }
+
 
