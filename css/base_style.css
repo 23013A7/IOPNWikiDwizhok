@@ -68,6 +68,10 @@ header a {
     color: var(--TextColor);
 }
 
+header .mobile {
+    display: none;
+  }
+
 .SubLogo {
     color: var(--TextColor);
 }
@@ -189,10 +193,19 @@ header a {
   .icon {
     margin: 8px 0px;
   }
-  header nav{
+  header .pc {
     display: none;
   }
+  header .mobile {
+    display: contents;
+  }
+
+  header nav ul {
+    display: flex;
+    gap: 0px;
+  }
 }
+
 
 
 
