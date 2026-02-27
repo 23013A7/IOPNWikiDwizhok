@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <?php
+    error_reporting(E_ALL);
+    ini_set('display_errors', 0);
+    ini_set('log_errors', 0);
     mb_internal_encoding('UTF-8');
     mb_http_output('UTF-8');
     
     header('Content-Type: text/html; charset=utf-8');
-    
+
     $NamePage = $_GET['Page'];
     if ($NamePage == '') {
         $NamePage = "Главная страница";
@@ -15,39 +18,86 @@
         $NamePage = "Некорректное имя страницы (Служебная)";
     }
 
+    //функция чтения файла
+    function tschtenija($filePath) {
+        $fp = fopen($filePath, 'c+');
+        if (!$fp) {
+            throw new Exception("Не удалось открыть файл: $filePath");
+        }
+
+        if (flock($fp, LOCK_EX)) {
+            $filesize = filesize($filePath);
+            $content = $filesize > 0 ? fread($fp, $filesize) : '';
+
+            $meta_pos = strpos($content, "\n");
+            if ($meta_pos === false) {
+                $meta_json = '';
+                $body = $content;
+            } else {
+                $meta_json = substr($content, 0, $meta_pos);
+                $body = substr($content, $meta_pos + 1);
+            }
+
+            $meta_data = json_decode($meta_json, true);
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($meta_data)) {
+                $meta_data = [
+                    'views' => 1,
+                    'data_create' => date('Y.m.d H:i:s'),
+                    'data_update' => date('Y.m.d H:i:s'),
+                    'author' => '',
+                    'status' => 'ошибка',
+                    'data_status' => date('Y.m.d H:i:s'),
+                    'version' => '2'
+                ];
+                $body = $content . "\nПри накрутке просмотров страница удалилась";
+            } else {
+                $meta_data['views'] = (isset($meta_data['views']) ? $meta_data['views'] : 0) + 1;
+            }
+            
+            $new_meta_json = json_encode($meta_data, JSON_UNESCAPED_UNICODE);
+            $new_content = $new_meta_json . "\n" . $body;
+
+            ftruncate($fp, 0);
+            rewind($fp);
+            fwrite($fp, $new_content);
+            fflush($fp);
+
+            flock($fp, LOCK_UN);
+        } else {
+            fclose($fp);
+            throw new Exception('Не удалось получить блокировку файла');
+        }
+        fclose($fp);
+
+        return ['body' => $body, 'meta' => $meta_data];
+    }
+
     if (is_file("Page/Save/$NamePage.iopnwiki")) {
-        $input = file_get_contents("Page/Save/$NamePage.iopnwiki");
         $file_a = "Page/Save/$NamePage.iopnwiki";
     }  elseif (is_file("Page/Pages/$NamePage.iopnwiki")) {
-        $input = file_get_contents("Page/Pages/$NamePage.iopnwiki");
         $file_a = "Page/Pages/$NamePage.iopnwiki";
     } else {
-        $input = file_get_contents("Page/Save/Отсутсвующия страница (Служебная).iopnwiki");
         $file_a = "Page/Save/Отсутсвующия страница (Служебная).iopnwiki";
     }
-    // БЛОК ЧТЕНИЯ МЕТАДАННЫХ
-    $meta_pos = strpos($input, "\n");
 
-    $meta_json = substr($input, 0, $meta_pos);
-    $input_save = $input;
-    $input = substr($input, $meta_pos + 1);
+    try {
+        $pageData = tschtenija($file_a);
+    } catch (Exception $e) {
+        error_log("Ошибка чтения файла: " . $e->getMessage());
+        $input = "== Ошибка загрузки страницы ==";
+        $meta_data = ['views' => 0, 'data_create' => '', 'data_update' => '', 'author' => '', 'status' => 'error', 'data_status' => '', 'version' => ''];
+    }
+    $input = $pageData['body'];
+    $meta_data = $pageData['meta'];
 
-
-    $meta_data = json_decode($meta_json, true);
-
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        //echo "Ошибка чтения метаданных: " . json_last_error_msg();
-        $input = $input_save;
-    } else {
-        if (isset($meta_data['views'])) {
-            $meta_data['views']++;
-        } else {
-            $meta_data['views'] = 1;
-        }
-        // Создания первой строки с мета данными
-        $new_meta_json = json_encode($meta_data, JSON_UNESCAPED_UNICODE);
-        $new_content = $new_meta_json . "\n" . $input;
-        file_put_contents($file_a, $new_content);
+    // Обработка специальных статусов
+    if ($meta_data['status'] == "генирация" && isset($meta_data['data']) && $meta_data['data'] == "0") {
+        echo "ddssss";
+        $input = "== sss == [[File:https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Wikipedia_Portal_Screenshot_%282022%29.svg/960px-Wikipedia_Portal_Screenshot_%282022%29.svg.png?20220125143641]]";
+    } elseif ($meta_data['status'] == "генирация") {
+        $input = "== ЗАГРУЗКА == [[File:https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Wikipedia_Portal_Screenshot_%282022%29.svg/960px-Wikipedia_Portal_Screenshot_%282022%29.svg.png?20220125143641]]";
+    } elseif ($meta_data['status'] == 'ошибка') {
+        $error = '<div class="error"><h2>Ошибка</h2><button>Пересоздать</button>';
     }
 
     require_once("wiky.inc.php");
@@ -61,7 +111,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ИОПН — Энциклопедия <?= htmlspecialchars($NamePage) ?></title>
     <link rel="stylesheet" href="./css/style.css">
-    <link rel="shortcut icon" href="../img/Favicons/Logo.ico">
+    <link rel="shortcut icon" href="../img/Favicons/Enziclopedia.ico">
 <!-- Опен граф -->
     <meta name="theme-color" content="#FECC6D">
     <meta property="og:type" content="website">
@@ -84,7 +134,6 @@
         };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-
 </head>
 <body>
     <header>
@@ -136,20 +185,20 @@
                 <div style="font-size:16px; position:relative; margin: -10px 10px;">
                     <?php
                         echo "<h2>Мета информация страницы:</h2>
-                        <p id=\"mate_data_create\"><strong>Просмотры: </strong>" . htmlspecialchars($meta_data['views']) . "</p>
-                        <p id=\"mate_data_create\"><strong>Дата создания: </strong>" . htmlspecialchars($meta_data['data_create']) . "</p>
-                        <p id=\"mate_data_create\"><strong>Дата обновления: </strong>" . htmlspecialchars($meta_data['data_update']) . "</p>
-                        <p id=\"mate_data_create\"><strong>Автор: </strong>" . htmlspecialchars($meta_data['author']) . "</p>
-                        <p id=\"mate_data_create\"><strong>Статус: </strong>" . htmlspecialchars($meta_data['status']) . "</p>
-                        <p id=\"mate_data_create\"><strong>Дата назначения статуса: </strong>" . htmlspecialchars($meta_data['data_status']) . "</p>
-                        <p id=\"mate_data_create\"><strong>Версия файла iopnwiki: </strong>" . htmlspecialchars($meta_data['version']) . "</p>";
+<p id=\"mate_data_create\"><strong>Просмотры: </strong>" . htmlspecialchars(isset($meta_data['views']) ? $meta_data['views'] : '') . "</p>
+<p id=\"mate_data_create\"><strong>Дата создания: </strong>" . htmlspecialchars(isset($meta_data['data_create']) ? $meta_data['data_create'] : '') . "</p>
+<p id=\"mate_data_create\"><strong>Дата обновления: </strong>" . htmlspecialchars(isset($meta_data['data_update']) ? $meta_data['data_update'] : '') . "</p>
+<p id=\"mate_data_create\"><strong>Автор: </strong>" . htmlspecialchars(isset($meta_data['author']) ? $meta_data['author'] : '') . "</p>
+<p id=\"mate_data_create\"><strong>Статус: </strong>" . htmlspecialchars(isset($meta_data['status']) ? $meta_data['status'] : '') . "</p>
+<p id=\"mate_data_create\"><strong>Дата назначения статуса: </strong>" . htmlspecialchars(isset($meta_data['data_status']) ? $meta_data['data_status'] : '') . "</p>
+<p id=\"mate_data_create\"><strong>Версия файла iopnwiki: </strong>" . htmlspecialchars(isset($meta_data['version']) ? $meta_data['version'] : '') . "</p>";
                     ?>
                 </div>
             </div>
             </span>
             </h1>
             <div id="Root">
-                <?php echo $wiky->parse($input); ?>
+                <?php echo isset($error) ? $error : ''; echo $wiky->parse($input); ?>
             </div>
         </div>
         <div class="End"></div>
