@@ -1,5 +1,10 @@
 <?php
-$Lines = file("Page/index.txt", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$Page = $Lines[array_rand($Lines)];
-echo "<meta http-equiv=\"refresh\" content=\"0; url=.?Page=$Page\">";
+$data = json_decode(file_get_contents('Page/index.json'), true);
+$keys = array_keys($data);
+$randomPage = $keys[array_rand($keys)];
+
+header('Location: .?Page=' . urlencode($randomPage));
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+exit;
 ?>
