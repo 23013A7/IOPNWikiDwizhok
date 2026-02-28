@@ -199,6 +199,18 @@
             </h1>
             <div id="Root">
                 <?php echo isset($error) ? $error : ''; echo $wiky->parse($input); ?>
+                <?php 
+                    switch($NamePage) {
+                        case 'Индексация страниц (служебная)':
+                            echo "<p>Привет</p>";
+                            require 'indexator.php';
+                            break;
+                        case 'Все страницы (служебная)':
+                            require_once "Page/All_page_table.php";
+                            renderArticleTable('Page/index.json');
+                            break;
+                    }
+                ?>
             </div>
         </div>
         <div class="End"></div>
