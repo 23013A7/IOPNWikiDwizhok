@@ -40,17 +40,10 @@
 
             $meta_data = json_decode($meta_json, true);
             if (json_last_error() !== JSON_ERROR_NONE || !is_array($meta_data)) {
-                $meta_data = [
-                    'views' => 1,
-                    'data_create' => date('Y.m.d H:i:s'),
-                    'data_update' => date('Y.m.d H:i:s'),
-                    'author' => '',
-                    'status' => 'ошибка',
-                    'data_status' => date('Y.m.d H:i:s'),
-                    'version' => '2'
-                ];
-                $body = $content . "\nПри накрутке просмотров страница удалилась";
+                // Если JSON битый – создаём новые метаданные
+                // сохраняем весь контент как тело
             } else {
+                // Увеличиваем счётчик просмотров
                 $meta_data['views'] = (isset($meta_data['views']) ? $meta_data['views'] : 0) + 1;
             }
             
@@ -91,13 +84,8 @@
     $meta_data = $pageData['meta'];
 
     // Обработка специальных статусов
-    if ($meta_data['status'] == "генирация" && isset($meta_data['data']) && $meta_data['data'] == "0") {
-        echo "ddssss";
-        $input = "== sss == [[File:https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Wikipedia_Portal_Screenshot_%282022%29.svg/960px-Wikipedia_Portal_Screenshot_%282022%29.svg.png?20220125143641]]";
-    } elseif ($meta_data['status'] == "генирация") {
-        $input = "== ЗАГРУЗКА == [[File:https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Wikipedia_Portal_Screenshot_%282022%29.svg/960px-Wikipedia_Portal_Screenshot_%282022%29.svg.png?20220125143641]]";
-    } elseif ($meta_data['status'] == 'ошибка') {
-        $error = '<div class="error"><h2>Ошибка</h2><button>Пересоздать</button>';
+    if ($meta_data['status'] == 'ошибка') {
+        $error = '<div class="error"><h2>Ошибка</h2><button>Обновить</button>';
     }
 
     require_once("wiky.inc.php");
@@ -149,7 +137,7 @@
                     <ul>
                         <li><a href="?Page=Главная страница">Главная страница</a></li>
                         <li><a href="?Page=Служебная:Поиск">Поиск</a></li>
-                        <li><a href="Random.php">Случаеная страница</a></li>
+                        <li><a href="Random.php">Случайная страница</a></li>
                         <li><a href="?Page=Редактировать">Редактировать</a></li>
                     </ul>
                 </nav>
