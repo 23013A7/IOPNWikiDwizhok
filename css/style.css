@@ -39,8 +39,22 @@
     margin: 16px 0px;
 }
 /* Списки */
-.content #Root li {
+.content #Root ul li {
+    list-style:disc;
+    margin-left: 25px;
+    overflow-x: visible;
+    overflow-y: visible;
+}
+
+.content #Root ul li li {
     list-style:circle;
+    margin-left: 25px;
+    overflow-x: visible;
+    overflow-y: visible;
+}
+
+.content #Root ol li{
+    list-style:decimal;
     margin-left: 25px;
     overflow-x: visible;
     overflow-y: visible;
@@ -87,3 +101,4 @@ a {
         font-size: 16px;
     }
 }
+
