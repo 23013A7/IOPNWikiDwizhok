@@ -40,11 +40,9 @@
 
             $meta_data = json_decode($meta_json, true);
             if (json_last_error() !== JSON_ERROR_NONE || !is_array($meta_data)) {
-                // Если JSON битый – создаём новые метаданные
-                // сохраняем весь контент как тело
+                // ы
             } else {
-                // Увеличиваем счётчик просмотров
-                $meta_data['views'] = (isset($meta_data['views']) ? $meta_data['views'] : 0) + 1;
+                $meta_data['views'] = (isset($meta_data['views']) ? $meta_data['views'] : 0) + 1; //увеличения сщётчика просмотров
             }
             
             $new_meta_json = json_encode($meta_data, JSON_UNESCAPED_UNICODE);
