@@ -1,0 +1,103 @@
+@import url(base_style.css);
+
+.content #Root * {
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+.content #Root mjx-container {
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+.content #Root mjx-container * {
+    overflow-x: visible;
+    overflow-y: visible;
+}
+
+.content #Root mjx-dbox {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+/* Заголовки */
+.content h1 {
+    font-weight: 300;
+    font-size: 42px;
+    border-bottom: 1px solid gray;
+    margin: 16px 0px;
+}
+
+.content h2 {
+    font-weight: 300;
+    font-size: 26px;
+    border-bottom: 1px solid gray;
+    margin: 16px 0px;
+}
+/* Параграф */
+.content p {
+    margin: 16px 0px;
+}
+/* Списки */
+.content #Root ul li {
+    list-style:disc;
+    margin-left: 25px;
+    overflow-x: visible;
+    overflow-y: visible;
+}
+
+.content #Root ul li li {
+    list-style:circle;
+    margin-left: 25px;
+    overflow-x: visible;
+    overflow-y: visible;
+}
+
+.content #Root ol li{
+    list-style:decimal;
+    margin-left: 25px;
+    overflow-x: visible;
+    overflow-y: visible;
+}
+/* Курсви */
+em {
+    font-size: 19px;
+    font-family: 'Times New Roman', Times, serif;
+}
+/* Сылки */
+a {
+    color: rgb(42, 86, 143)
+}
+/* Удлитнителоь коцна */
+.End {
+    margin-bottom: 50px;
+}
+
+.error {
+    background: #a31a0f;
+    border-radius: 8px;
+    padding: 20px;
+    color: white;
+}
+
+.error button {
+    background: red;
+    padding: 9px;
+    color: white;
+    border-radius: 9px;
+    font-size: 20px;
+    margin: 0px 12px;
+    float: right;
+    font-family: "Geologica", sans-serif;
+}
+
+/* Адаптация */
+@media (max-width: 768px) {
+    .content h1 {
+        font-size: 32px;
+    }
+
+    em {
+        font-size: 16px;
+    }
+}
