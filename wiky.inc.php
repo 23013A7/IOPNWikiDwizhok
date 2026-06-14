@@ -206,10 +206,56 @@ class wiky {
 		return implode("\n", $result);
 	}
 	
+	// НОВОЕ: Разбиение строки параметров по | с учётом вложенных [[...]]
+	private function splitImageParams($paramString) {
+	    $params = [];
+	    $current = '';
+	    $depth = 0;
+	    $len = strlen($paramString);
+	    
+	    for ($i = 0; $i < $len; $i++) {
+	        $char = $paramString[$i];
+	        
+	        // Проверяем вложенные скобки [[...]]
+	        if ($i < $len - 1) {
+	            if ($char === '[' && $paramString[$i + 1] === '[') {
+	                $depth++;
+	                $current .= '[[';
+	                $i++;
+	                continue;
+	            }
+	            if ($char === ']' && $paramString[$i + 1] === ']') {
+	                $depth--;
+	                $current .= ']]';
+	                $i++;
+	                continue;
+	            }
+	        }
+	        
+	        // Если это разделитель и мы не внутри скобок
+	        if ($char === '|' && $depth === 0) {
+	            $params[] = trim($current);
+	            $current = '';
+	        } else {
+	            $current .= $char;
+	        }
+	    }
+	    
+	    // Добавляем последний параметр
+	    if ($current !== '') {
+	        $params[] = trim($current);
+	    }
+	    
+	    return $params;
+	}
+	
 	// Обработка изображений с гибкими параметрами
 	private function buildImageTag($filename, $paramString = '') {
 	    $src = htmlspecialchars(trim($filename), ENT_QUOTES, 'UTF-8');
-	    $params = $paramString ? array_map('trim', explode('|', $paramString)) : [];
+	    
+	    // ИСПРАВЛЕНИЕ: Используем новый метод вместо explode('|')
+	    $params = $paramString ? $this->splitImageParams($paramString) : [];
+	    
 	    $alignment = ''; $sizeClass = ''; $width = null; $caption = '';
 	    
 	    foreach ($params as $param) {
@@ -217,9 +263,9 @@ class wiky {
 	        if (in_array($paramLower, ['слева', 'left'])) $alignment = 'left';
 	        elseif (in_array($paramLower, ['справа', 'right'])) $alignment = 'right';
 	        elseif (in_array($paramLower, ['центр', 'center'])) $alignment = 'center';
-	        elseif (in_array($paramLower, ['мини', 'миниатюра', 'thumb', 'thumbnail', 'mini'])) $sizeClass = 'image-mini';
+	        elseif (in_array($paramLower, ['мини', 'маленький', 'thumb', 'thumbnail', 'mini'])) $sizeClass = 'image-mini';
 	        elseif (preg_match('/^(\d+)px$/i', $param, $m)) $width = (int)$m[1];
-	        else $caption = htmlspecialchars($param, ENT_QUOTES, 'UTF-8');
+	        else $caption = $param; // Не экранируем здесь, т.к. могут быть вложенные ссылки
 	    }
 	    
 	    $classes = ['image'];
@@ -233,7 +279,11 @@ class wiky {
 	    
 	    $html = '<div class="' . $classStr . '">';
 	    $html .= '<img ' . $imgAttrs . '/>';
-	    if ($caption !== '') $html .= '<p class="image-description">' . $caption . '</p>';
+	    if ($caption !== '') {
+	        // Экранируем только HTML-теги, но оставляем вики-разметку для дальнейшей обработки
+	        $safeCaption = htmlspecialchars($caption, ENT_QUOTES, 'UTF-8');
+	        $html .= '<p class="image-description">' . $safeCaption . '</p>';
+	    }
 	    $html .= '</div>';
 	    return $html;
 	}
@@ -261,9 +311,11 @@ class wiky {
 	                // Извлекаем всё между [[ и ]]
 	                $content = substr($text, $start + 2, $end - $start - 2);
 	                
-	                // !!! ИСПРАВЛЕНИЕ ЗДЕСЬ: Удаляем префикс "File:", "img:" или "файл:" !!!
+	                // Удаляем префикс "File:", "img:" или "файл:"
 	                $content = preg_replace('/^(file|img|файл):/iu', '', $content);
 	                
+	                // Ищем первую | для разделения имени файла и параметров
+	                // Имя файла не должно содержать |, так что strpos работает корректно
 	                $firstPipe = strpos($content, '|');
 	                if ($firstPipe === false) {
 	                    $result .= $this->buildImageTag($content, '');
