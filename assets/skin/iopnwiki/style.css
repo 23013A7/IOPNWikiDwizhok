@@ -1,10 +1,5 @@
 @import url(base_style.css);
 
-.content #Root * {
-    overflow-x: auto;
-    overflow-y: visible;
-}
-
 .content #Root mjx-container {
     overflow-x: auto;
     overflow-y: visible;
@@ -68,6 +63,56 @@ em {
 a {
     color: rgb(42, 86, 143)
 }
+
+.image {
+    position: relative;
+    padding: 0px 6px;
+    background-color: var(--BackgroundBody);
+    display: inline-block; 
+    max-width: 100%;      
+    box-sizing: border-box;
+}
+
+.image img {
+    margin: 0px;
+    max-width: 100%;  
+    height: auto;          
+    display: block;
+}
+
+.image p {
+    margin: -4px 0px;
+}
+
+.image-right {
+    float: right;
+    margin: 0 0 16px 16px;
+}
+
+.image-left {
+    float: left;
+    margin: 0 16px 16px 0;
+}
+
+.image-center {
+    display: block;
+    float: none;
+    margin: 16px auto;
+    text-align: center;
+}
+
+.image-mini {
+    width: 288px;
+    max-width: 100%; 
+}
+
+.image-description {
+    padding: 10px 5px;
+    background-color: white;
+    text-align: center;
+    color: #2f2f2f;
+}
+
 /* Удлитнителоь коцна */
 .End {
     margin-bottom: 50px;
@@ -99,6 +144,12 @@ a {
 
     em {
         font-size: 16px;
+    }
+
+    .image-left, .image-right {
+        float: none;
+        display: block;
+        margin: 16px auto;
     }
 }
 
