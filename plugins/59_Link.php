@@ -29,4 +29,4 @@ HookManager::register('parse_text', function($text) {
     );
 
     return $text;
-}, 30);
+}, 59);
