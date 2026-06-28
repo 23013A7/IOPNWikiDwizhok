@@ -1,6 +1,6 @@
 <?php
 // Максимально быстрое перенаправление
-$data = json_decode(file_get_contents('Page/index.json'), true);
+$data = json_decode(file_get_contents('Pages/index.json'), true);
 $keys = array_keys($data);
 $randomPage = $keys[array_rand($keys)];
 
