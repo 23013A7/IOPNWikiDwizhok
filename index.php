@@ -9,6 +9,7 @@
     header('Content-Type: text/html; charset=utf-8');
 
     $settings = include 'config.php';
+    $current_skin = $settings['WikiSkin'];
 
     // Система плагинов
     require_once 'core/HookManager.php';
@@ -16,15 +17,63 @@
     require_once 'core/Parser.php';
     PluginLoader::load(__DIR__ . '/plugins');
 
-    $NamePage = $_GET['Page'];
-    if ($NamePage == '') {
-        $NamePage = "Главная страница";
+    // --- Парсинг имени страницы и пространства имён ---
+    // URL: ?Page=Название          → файл Pages/Название.iopnwiki
+    // URL: ?Page=Шаблон:Название   → файл Pages/Шаблон/Название.iopnwiki
+
+    $NamePage = isset($_GET['Page']) ? $_GET['Page'] : '';
+    if ($NamePage === '') {
+        $NamePage = 'Главная страница';
     }
 
-    $NamePage = preg_replace('/[^a-zA-Zа-яёА-ЯЁ0-9_\- —№.,()\p{Greek}]/u', '', $NamePage);
-    if (empty($NamePage)) {
-        $NamePage = "Некорректное имя страницы (Служебная)";
+    // Разбиваем на пространство имён и имя страницы
+    if (strpos($NamePage, ':') !== false) {
+        list($namespace, $pagename) = explode(':', $NamePage, 2);
+    } else {
+        $namespace = '';
+        $pagename  = $NamePage;
     }
+
+    // Очистка пространства имён — только буквы, цифры, пробел, дефис
+    $namespace = preg_replace('/[^a-zA-Zа-яёА-ЯЁ0-9_\- \p{Greek}]/u', '', $namespace);
+
+    // Очистка имени страницы — буквы, цифры, пробел, дефис, знаки препинания
+    $pagename = preg_replace('/[^a-zA-Zа-яёА-ЯЁ0-9_\- —№.,()\p{Greek}]/u', '', $pagename);
+
+    if (empty($pagename)) {
+        $namespace = 'Служебная';
+        $pagename  = 'Некорректное имя страницы';
+    }
+
+    // Собираем путь к файлу
+    // Pages/Название.iopnwiki  или  Pages/Пространство/Название.iopnwiki
+    $base_dir = __DIR__ . '/Pages';
+    if ($namespace !== '') {
+        $file_a_candidate = $base_dir . '/' . $namespace . '/' . $pagename . '.iopnwiki';
+    } else {
+        $file_a_candidate = $base_dir . '/' . $pagename . '.iopnwiki';
+    }
+
+    // Защита от path traversal — убеждаемся что путь внутри Pages/
+    $real_base = realpath($base_dir);
+    $real_file = realpath($file_a_candidate);
+
+    if ($real_file && $real_base && strpos($real_file, $real_base . DIRECTORY_SEPARATOR) === 0) {
+        $file_a = $real_file;
+    } else {
+        $file_a = null;
+    }
+
+    // Если файл не найден — страница отсутствует
+    if (!$file_a || !is_file($file_a)) {
+        $missing = $base_dir . '/Служебная/Отсутствующая страница.iopnwiki';
+        $file_a  = is_file($missing) ? $missing : null;
+    }
+
+    // Полное имя страницы для передачи в хуки и скин
+    $FullPageName = $namespace !== '' ? $namespace . ':' . $pagename : $pagename;
+
+    // --------------------------------------------------
 
     // Функция чтения файла
     function tschtenija($filePath) {
@@ -43,7 +92,6 @@
         }
         fclose($fp);
 
-        // Отделения строки метаданых
         $meta_pos = strpos($content, "\n");
         if ($meta_pos === false) {
             $meta_json = '';
@@ -61,19 +109,6 @@
         return array('body' => $body, 'meta' => $meta_data);
     }
 
-    $file_a = null;
-    if (is_file("Page/Save/$NamePage.iopnwiki")) {
-        $file_a = "Page/Save/$NamePage.iopnwiki";
-    } elseif (is_file("Page/Pages/$NamePage.iopnwiki")) {
-        $file_a = "Page/Pages/$NamePage.iopnwiki";
-    } else {
-        if (file_exists("Page/Pages/Отсутсвующия страница (Служебная).iopnwiki")) {
-            $file_a = "Page/Pages/Отсутсвующия страница (Служебная).iopnwiki";
-        } else {
-            $input = "тест сообщения для проверки";
-        }
-    }
-
     // Получение данных страницы
     $meta_data = array();
     if ($file_a) {
@@ -89,14 +124,18 @@
                 'author' => '', 'status' => 'error', 'data_status' => '', 'version' => ''
             );
         }
+    } else {
+        $input = "тест сообщения для проверки";
     }
 
     // Событие просмотра страницы
     HookManager::fire('page_view', array(
-        'file'     => $file_a,
-        'meta'     => $meta_data,
-        'meta_ref' => &$meta_data,   // ссылка что бы плагин мог обновить данные для отображения
-        'page'     => $NamePage,
+        'file'      => $file_a,
+        'meta'      => $meta_data,
+        'meta_ref'  => &$meta_data,
+        'page'      => $FullPageName,
+        'pagename'  => $pagename,
+        'namespace' => $namespace,
     ));
 
     // Обработка специальных статусов
@@ -112,5 +151,5 @@
 
 <?php
     // Скин
-    require_once("assets/skin/" . $settings['WikiSkin'] . "/index.php");
+    require_once("assets/skin/" . $current_skin . "/index.php");
 ?>
