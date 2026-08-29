@@ -1,47 +1,46 @@
 <?php
-/* Wiky.php - крошечная PHP-библиотека для преобразования вики-разметки в HTML
- * Автор: Тони Ляхдекорпи <toni@lygon.net>
- *
- * Использование кода разрешено на условиях любой из следующих лицензий:
- * Apache License 2.0, http://www.apache.org/licenses/LICENSE-2.0
- * Mozilla Public License 1.1, http://www.mozilla.org/MPL/1.1/
- * GNU Lesser General Public License 3.0, http://www.gnu.org/licenses/lgpl-3.0.html
- * GNU General Public License 2.0, http://www.gnu.org/licenses/gpl-2.0.html
- * Creative Commons Attribution 3.0 Unported License, http://creativecommons.org/licenses/by/3.0/
- */
-
 class Parser {
 
-    //Разрешённые теги
+    private $tokenizer;
+
+    private $treeParser;
+
+    private $renderer;
+
     private $allowedTags = array(
-        'h1', 'h2', 'h3', 'h4',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'p', 'br', 'hr',
-        'strong', 'em', 'u', 'sub', 'sup',
+        'strong', 'em', 'u', 'sub', 'sup', 's',
         'ul', 'ol', 'li',
         'dl', 'dt', 'dd',
         'a', 'img',
         'code', 'pre',
         'div', 'span', 'blockquote',
-        'style',
         'table', 'thead', 'tbody', 'tfoot',
         'tr', 'th', 'td',
-        'caption', 'col', 'colgroup'
+        'caption', 'col', 'colgroup',
+        'details', 'summary',
+        'mark',
     );
 
-    //Разрешённые атрибуты тегов
     private $allowedAttrs = array(
-        'a'        => array('href', 'title'),
+        'a'        => array('href', 'title', 'target'),
         'img'      => array('src', 'alt', 'width', 'height'),
         'table'    => array('summary'),
         'th'       => array('colspan', 'rowspan', 'scope'),
         'td'       => array('colspan', 'rowspan'),
         'col'      => array('span'),
         'colgroup' => array('span'),
+        'details'  => array('open'),
     );
 
     private $blockedProtocols = array('javascript', 'data', 'vbscript');
 
     public function __construct() {
+        $this->tokenizer  = new Tokenizer();
+        $this->treeParser = new TreeParser();
+        $this->renderer   = new Renderer();
+
         $this->allowedTags  = HookManager::apply('parser_allowed_tags',  $this->allowedTags);
         $this->allowedAttrs = HookManager::apply('parser_allowed_attrs', $this->allowedAttrs);
 
@@ -59,21 +58,47 @@ class Parser {
     }
 
     public function parse($input) {
-        if (empty($input)) {
-            return false;
-        }
-        $text = HookManager::apply('parse_before', $input);
-        $text = HookManager::apply('parse_text', $text);
-        $text = HookManager::apply('parse_after', $text);
-        $text = $this->sanitize($text);
-        return $text;
+        if (empty($input)) return false;
+
+        $input = str_replace("\r\n", "\n", $input);
+        $input = str_replace("\r", "\n", $input);
+
+        $input = HookManager::apply('parse_before', $input);
+
+        $tokens = $this->tokenizer->tokenize($input);
+        
+        $tokens = HookManager::apply('parse_tokens', $tokens);
+
+        $ast = $this->treeParser->build($tokens);
+
+        $ast = HookManager::apply('parse_ast', $ast);
+
+        $html = $this->renderer->render($ast);
+
+        $html = HookManager::apply('parse_after', $html);
+
+        $html = $this->sanitize($html);
+
+        return $html;
     }
-  
+
+    public function debugAST($input) {
+        $input  = str_replace(array("\r\n", "\r"), "\n", $input);
+        $tokens = $this->tokenizer->tokenize($input);
+        $ast    = $this->treeParser->build($tokens);
+        return $ast->dump();
+    }
+
+    public function debugTokens($input) {
+        $input = str_replace(array("\r\n", "\r"), "\n", $input);
+        return $this->tokenizer->tokenize($input);
+    }
+
     private function sanitize($html) {
         if (empty($html)) return $html;
 
         libxml_use_internal_errors(true);
-        $dom = new DOMDocument();
+        $dom     = new DOMDocument();
         $wrapped = '<?xml encoding="UTF-8"><div id="parser-root">' . $html . '</div>';
         @$dom->loadHTML($wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         libxml_clear_errors();
@@ -85,63 +110,52 @@ class Parser {
         }
 
         $elements = array();
-        $all = $xpath->query('.//*', $root);
-        foreach ($all as $el) {
-            $elements[] = $el;
-        }
+        $all      = $xpath->query('.//*', $root);
+        foreach ($all as $el) $elements[] = $el;
         $elements = array_reverse($elements);
 
         foreach ($elements as $el) {
-            $tagName = strtolower($el->nodeName);
+            $tag = strtolower($el->nodeName);
 
-            if (!in_array($tagName, $this->allowedTags)) {
-                $text = '';
-                foreach ($el->childNodes as $child) {
-                    $text .= $dom->saveHTML($child);
-                }
-                $escaped  = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+            if (!in_array($tag, $this->allowedTags)) {
+                $inner    = '';
+                foreach ($el->childNodes as $child) $inner .= $dom->saveHTML($child);
                 $fragment = $dom->createDocumentFragment();
-                $fragment->appendXML($escaped);
+                @$fragment->appendXML(htmlspecialchars($inner, ENT_QUOTES, 'UTF-8'));
                 $el->parentNode->replaceChild($fragment, $el);
                 continue;
             }
 
             if ($el->hasAttributes()) {
-                $attrsToRemove  = array();
-                $allowedForTag  = isset($this->allowedAttrs[$tagName])
-                    ? $this->allowedAttrs[$tagName]
-                    : array();
+                $remove  = array();
+                $allowed = isset($this->allowedAttrs[$tag]) ? $this->allowedAttrs[$tag] : array();
 
                 foreach ($el->attributes as $attr) {
-                    $attrName  = strtolower($attr->name);
-                    $attrValue = $attr->value;
+                    $name = strtolower($attr->name);
+                    $val  = $attr->value;
 
-                    if (!in_array($attrName, $allowedForTag)) {
-                        $attrsToRemove[] = $attrName;
+                    if (!in_array($name, $allowed)) {
+                        $remove[] = $name;
                         continue;
                     }
 
-                    if (in_array($attrName, array('href', 'src', 'action', 'formaction'))) {
-                        $clean = strtolower(trim(preg_replace('/[\x00-\x1F\x7F]/u', '', $attrValue)));
+                    if (in_array($name, array('href', 'src', 'action'))) {
+                        $clean = strtolower(trim(preg_replace('/[\x00-\x1F\x7F]/u', '', $val)));
                         foreach ($this->blockedProtocols as $proto) {
-                            if (preg_match('/^\s*' . preg_quote($proto, '/') . '\s*:/i', $clean)) {
-                                $attrsToRemove[] = $attrName;
+                            if (strpos($clean, $proto . ':') === 0) {
+                                $remove[] = $name;
                                 break;
                             }
                         }
                     }
                 }
 
-                foreach ($attrsToRemove as $attrName) {
-                    $el->removeAttribute($attrName);
-                }
+                foreach ($remove as $name) $el->removeAttribute($name);
             }
         }
 
         $result = '';
-        foreach ($root->childNodes as $child) {
-            $result .= $dom->saveHTML($child);
-        }
+        foreach ($root->childNodes as $child) $result .= $dom->saveHTML($child);
         return $result;
     }
 }
