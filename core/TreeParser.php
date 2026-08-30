@@ -2,11 +2,8 @@
 class TreeParser {
 
     private $root;
-
     private $current;
-
     private $nodeStack = array();
-
     private $paragraph = null;
 
     public function build(array $tokens) {
@@ -32,7 +29,7 @@ class TreeParser {
     }
 
     private function handleOpen(array $token) {
-        $rule = $token['rule'];
+        $rule    = $token['rule'];
         $isBlock = $rule['Тип'] === 'Блок' || $rule['Тип'] === 'МногострочныйБлок';
 
         if ($isBlock) {
@@ -41,16 +38,19 @@ class TreeParser {
 
         $node = new ASTNode($rule['Имя'], '', array('rule' => $rule));
 
-        if (!$isBlock && $this->paragraph !== null) {
-            $this->paragraph->addChild($node);
-        } else {
+        if ($isBlock) {
             $this->current->addChild($node);
+        } else {
+            $this->ensureParagraph();
+            $this->paragraph->addChild($node);
         }
 
         $this->nodeStack[] = array(
             'node'      => $this->current,
             'paragraph' => $this->paragraph,
+            'isBlock'   => $isBlock,
         );
+
         $this->current   = $node;
         $this->paragraph = null;
     }
@@ -81,8 +81,8 @@ class TreeParser {
         $count    = count($children);
 
         if ($count > 0) {
-            $last = $children[$count - 1];
-            $isList = substr($last->type, -5) === '_List';
+            $last     = $children[$count - 1];
+            $isList   = substr($last->type, -5) === '_List';
             $sameRule = $last->attr('rule_name') === $rule['Имя'];
             $canMerge = !$rule['НеСоединятьСДругими'] || $sameRule;
 
@@ -99,11 +99,10 @@ class TreeParser {
             $this->current->addChild($listNode);
         }
 
-        $item = new ASTNode($rule['Имя'] . '_Item', '', array(
+        $item = new ASTNode($rule['Имя'] . '_Item', $token['value'], array(
             'rule'   => $rule,
             'indent' => $indent,
         ));
-        $item->addText($token['value']);
         $listNode->addChild($item);
     }
 
@@ -138,8 +137,7 @@ class TreeParser {
 
     private function flushParagraph() {
         if ($this->paragraph === null) return;
-        $text = trim($this->paragraph->toPlainText());
-        if ($text !== '') {
+        if ($this->paragraph->hasChildren()) {
             $this->current->addChild($this->paragraph);
         }
         $this->paragraph = null;
