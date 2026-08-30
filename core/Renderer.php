@@ -29,10 +29,6 @@ class Renderer {
             return $this->renderList($node, $rule);
         }
 
-        if ($rule && substr($node->type, -5) === '_Item') {
-            return $this->renderListItem($node, $rule);
-        }
-
         if (!$rule) {
             return $this->renderChildren($node);
         }
@@ -47,7 +43,7 @@ class Renderer {
 
         return $this->renderSimple($node, $rule);
     }
-  
+
     private function renderSimple(ASTNode $node, array $rule) {
         if ($rule['ПрекратитьОбработку']) {
             $inner = htmlspecialchars($node->toPlainText(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -59,30 +55,23 @@ class Renderer {
             $inner = trim($inner);
         }
 
-        return $rule['Результат'] . $inner . $rule['КонечныйРезультат'] . "\n";
+        return $rule['Результат'] . $inner . $rule['КонечныйРезультат'];
     }
 
     private function renderWithHandler(ASTNode $node, array $rule) {
         $rawText = $node->toPlainText();
-
-        if ($rule['Аргументы']) {
-            $args = $this->splitArgs($rawText, $rule);
-            $args = $this->applyArgDefaults($args, $rule);
-        } else {
-            $args = array();
-        }
-
-        $result = call_user_func($rule['Обработчик'], $args, $rawText, $rule);
-
-        return is_string($result) ? $result . "\n" : '';
+        $args    = $rule['Аргументы'] ? $this->splitArgs($rawText, $rule) : array();
+        $args    = $this->applyArgDefaults($args, $rule);
+        $result  = call_user_func($rule['Обработчик'], $args, $rawText, $rule);
+        return is_string($result) ? $result : '';
     }
 
     private function renderWithArgs(ASTNode $node, array $rule) {
-        $rawText = $node->toPlainText();
-        $args    = $this->splitArgs($rawText, $rule);
-        $args    = $this->applyArgDefaults($args, $rule);
-
+        $rawText  = $node->toPlainText();
+        $args     = $this->splitArgs($rawText, $rule);
+        $args     = $this->applyArgDefaults($args, $rule);
         $rendered = array();
+
         foreach ($args as $i => $val) {
             if (in_array($i, $rule['НепарситьАргументы'])) {
                 $rendered[$i] = htmlspecialchars(trim($val), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -97,32 +86,22 @@ class Renderer {
         }
 
         $result = $this->cleanUnusedPlaceholders($result);
-
-        return $result . $rule['КонечныйРезультат'] . "\n";
+        return $result . $rule['КонечныйРезультат'];
     }
-  
+
     private function splitArgs($rawText, array $rule) {
         $sep     = $rule['РазделительАргументов'];
         $maxArgs = $rule['ЧислоАргументов'];
-
-        if ($maxArgs === -1) {
-            $parts = explode($sep, $rawText);
-        } else {
-            $parts = explode($sep, $rawText, $maxArgs + 1);
-        }
-
+        $parts   = $maxArgs === -1
+            ? explode($sep, $rawText)
+            : explode($sep, $rawText, $maxArgs + 1);
         $args = array();
-        foreach ($parts as $i => $part) {
-            $args[$i] = $part;
-        }
+        foreach ($parts as $i => $part) $args[$i] = $part;
         return $args;
     }
 
     private function applyArgDefaults(array $args, array $rule) {
-        $defaults = $rule['ЗначенияАргументов'];
-        if (empty($defaults)) return $args;
-
-        foreach ($defaults as $i => $default) {
+        foreach ($rule['ЗначенияАргументов'] as $i => $default) {
             if (!isset($args[$i]) || trim($args[$i]) === '') {
                 if (strlen($default) >= 2 && $default[0] === '%' && is_numeric(substr($default, 1))) {
                     $ref = (int)substr($default, 1);
@@ -132,7 +111,6 @@ class Renderer {
                 }
             }
         }
-
         return $args;
     }
 
@@ -145,8 +123,7 @@ class Renderer {
                 $i += 2;
                 while ($i < $len && $str[$i] >= '0' && $str[$i] <= '9') $i++;
             } else {
-                $result .= $str[$i];
-                $i++;
+                $result .= $str[$i++];
             }
         }
         return $result;
@@ -161,7 +138,7 @@ class Renderer {
         if ($inlineParser !== null) {
             $html = $inlineParser->parse($text);
             $html = trim($html);
-            if (substr($html, 0, 3) === '<p>' && substr($html, -4) === '</p>') {
+            if (strncmp($html, '<p>', 3) === 0 && substr($html, -4) === '</p>') {
                 $html = substr($html, 3, strlen($html) - 7);
             }
             return $html;
@@ -176,7 +153,7 @@ class Renderer {
 
         $html = $rule['Обёртка'] . "\n";
         foreach ($node->children as $item) {
-            $inner = htmlspecialchars($item->value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $inner = $this->parseInline($item->value);
             if ($rule['УбиратьВнутренниеПробелы']) $inner = trim($inner);
             $html .= $rule['Результат'] . $inner . $rule['КонечныйРезультат'] . "\n";
         }
@@ -193,7 +170,7 @@ class Renderer {
         while ($i < $count) {
             $item       = $items[$i];
             $indent     = $item->attr('indent', 0);
-            $inner      = htmlspecialchars($item->value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $inner      = $this->parseInline($item->value);
             $nextIndent = ($i + 1 < $count) ? $items[$i + 1]->attr('indent', 0) : -1;
 
             if ($nextIndent > $indent) {
@@ -216,16 +193,9 @@ class Renderer {
         return $html;
     }
 
-    private function renderListItem(ASTNode $node, array $rule) {
-        $inner = htmlspecialchars($node->value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        return $rule['Результат'] . $inner . $rule['КонечныйРезультат'] . "\n";
-    }
-
     private function renderChildren(ASTNode $node) {
         $html = '';
-        foreach ($node->children as $child) {
-            $html .= $this->render($child);
-        }
+        foreach ($node->children as $child) $html .= $this->render($child);
         return $html;
     }
 }
