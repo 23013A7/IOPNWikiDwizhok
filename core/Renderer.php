@@ -92,11 +92,55 @@ class Renderer {
     private function splitArgs($rawText, array $rule) {
         $sep     = $rule['РазделительАргументов'];
         $maxArgs = $rule['ЧислоАргументов'];
-        $parts   = $maxArgs === -1
-            ? explode($sep, $rawText)
-            : explode($sep, $rawText, $maxArgs + 1);
+        $sepLen  = strlen($sep);
+
+        $parts   = array();
+        $current = '';
+        $depth   = 0;
+        $len     = strlen($rawText);
+        $i       = 0;
+
+        while ($i < $len) {
+            if ($i + 1 < $len && (
+                ($rawText[$i] === '[' && $rawText[$i + 1] === '[') ||
+                ($rawText[$i] === '{' && $rawText[$i + 1] === '{')
+            )) {
+                $depth++;
+                $current .= $rawText[$i] . $rawText[$i + 1];
+                $i += 2;
+                continue;
+            }
+
+            if ($i + 1 < $len && (
+                ($rawText[$i] === ']' && $rawText[$i + 1] === ']') ||
+                ($rawText[$i] === '}' && $rawText[$i + 1] === '}')
+            )) {
+                if ($depth > 0) $depth--;
+                $current .= $rawText[$i] . $rawText[$i + 1];
+                $i += 2;
+                continue;
+            }
+
+            if ($depth === 0 && $sepLen > 0 && substr($rawText, $i, $sepLen) === $sep) {
+                $parts[] = $current;
+                $current = '';
+                $i += $sepLen;
+
+                if ($maxArgs !== -1 && count($parts) >= $maxArgs) {
+                    $current = substr($rawText, $i);
+                    $i = $len;
+                }
+                continue;
+            }
+
+            $current .= $rawText[$i];
+            $i++;
+        }
+
+        $parts[] = $current;
+
         $args = array();
-        foreach ($parts as $i => $part) $args[$i] = $part;
+        foreach ($parts as $idx => $part) $args[$idx] = $part;
         return $args;
     }
 
