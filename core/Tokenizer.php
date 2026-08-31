@@ -2,23 +2,14 @@
 class Tokenizer {
 
     private $input  = '';
-
     private $pos    = 0;
-
     private $len    = 0;
-
     private $tokens = array();
-
     private $stack  = array();
-
     private $rules  = array();
-
     private $inlineRules = array();
-
     private $blockRules  = array();
-
     private $multiRules  = array();
-
     private $listRules   = array();
 
     public function tokenize($input) {
@@ -119,7 +110,7 @@ class Tokenizer {
 
         return false;
     }
-  
+
     private function tryMultilineOpen() {
         foreach ($this->multiRules as $rule) {
             $elem = $rule['Элемент'];
@@ -278,6 +269,19 @@ class Tokenizer {
                     return true;
                 }
 
+                if ($rule['Обработчик'] !== null) {
+                    $closing  = $rule['КонечныйЭлемент'];
+                    $closePos = $this->findClosingNested($this->pos, $rule['Элемент'], $closing);
+                    if ($closePos === false) {
+                        $this->pos = $startPos;
+                        continue;
+                    }
+                    $rawContent = substr($this->input, $this->pos, $closePos - $this->pos);
+                    $this->pos  = $closePos + strlen($closing);
+                    $this->addToken('raw_handler', $rule, $rawContent);
+                    return true;
+                }
+
                 $closing = $rule['КонечныйЭлемент'];
                 if ($rule['ВнутреннииПробелы']) {
                     $closing = ' ' . $closing;
@@ -310,6 +314,29 @@ class Tokenizer {
         $nlen = strlen($needle);
         for ($i = $from; $i <= $limit - $nlen; $i++) {
             if (substr($this->input, $i, $nlen) === $needle) return $i;
+        }
+        return false;
+    }
+
+    private function findClosingNested($from, $opening, $closing) {
+        $depth   = 1;
+        $pos     = $from;
+        $openLen = strlen($opening);
+        $closeLen = strlen($closing);
+
+        while ($pos < $this->len) {
+            if ($openLen > 0 && $this->matchAt($pos, $opening)) {
+                $depth++;
+                $pos += $openLen;
+                continue;
+            }
+            if ($this->matchAt($pos, $closing)) {
+                $depth--;
+                if ($depth === 0) return $pos;
+                $pos += $closeLen;
+                continue;
+            }
+            $pos++;
         }
         return false;
     }
