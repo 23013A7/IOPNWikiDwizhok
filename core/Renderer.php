@@ -59,7 +59,7 @@ class Renderer {
     }
 
     private function renderWithHandler(ASTNode $node, array $rule) {
-        $rawText = $node->toPlainText();
+        $rawText = $node->value;
         $args    = $rule['Аргументы'] ? $this->splitArgs($rawText, $rule) : array();
         $args    = $this->applyArgDefaults($args, $rule);
         $result  = call_user_func($rule['Обработчик'], $args, $rawText, $rule);
