@@ -15,6 +15,12 @@ class Renderer {
             case ASTNode::TYPE_PARAGRAPH:
                 $inner = trim($this->renderChildren($node));
                 if ($inner === '') return '';
+                $isBlock = strncmp($inner, '<div', 4) === 0
+                    || strncmp($inner, '<table', 6) === 0
+                    || strncmp($inner, '<ul', 3) === 0
+                    || strncmp($inner, '<ol', 3) === 0
+                    || strncmp($inner, '<blockquote', 11) === 0;
+                if ($isBlock) return $inner . "\n";
                 return '<p>' . $inner . '</p>' . "\n";
 
             default:
