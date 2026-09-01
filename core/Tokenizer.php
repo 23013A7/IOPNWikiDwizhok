@@ -125,6 +125,18 @@ class Tokenizer {
                 if (!$this->matchAt($this->pos, $elem)) continue;
             }
 
+            if ($rule['Обработчик'] !== null) {
+                $rawStart = $this->pos + strlen($elem);
+                $closePos = $this->findMultilineClosingAtLineStart($rawStart, $rule['КонечныйЭлемент']);
+                if ($closePos === false) continue;
+
+                $rawText = substr($this->input, $rawStart, $closePos - $rawStart);
+                $this->pos = $closePos + strlen($rule['КонечныйЭлемент']);
+                $this->skipToLineEnd();
+                $this->addToken('raw_handler', $rule, $rawText);
+                return true;
+            }
+
             $this->pos += strlen($elem);
             $this->skipToLineEnd();
 
@@ -136,31 +148,54 @@ class Tokenizer {
         return false;
     }
 
+    private function findMultilineClosingAtLineStart($from, $closing) {
+        $pos = $from;
+        $len = strlen($closing);
+
+        while ($pos < $this->len) {
+            if ($pos === 0 || $this->input[$pos - 1] === "\n") {
+                if ($this->matchAt($pos, $closing)) return $pos;
+            }
+            $next = strpos($this->input, "\n", $pos);
+            if ($next === false) return false;
+            $pos = $next + 1;
+        }
+        return false;
+    }
+
     private function tryListRule() {
         $indent = 0;
-        $p      = $this->pos;
+        $p = $this->pos;
         while ($p < $this->len && $this->input[$p] === ' ') {
             $indent++;
             $p++;
         }
 
+        if ($p >= $this->len) return false;
+
+        $marker = $this->input[$p];
+        if ($marker !== '*' && $marker !== '#') return false;
+
+        $markerStart = $p;
+        while ($p < $this->len && $this->input[$p] === $marker) {
+            $p++;
+        }
+        $level = $p - $markerStart;
+
+        if ($p >= $this->len || $this->input[$p] !== ' ') return false;
+        $p++;
+
         foreach ($this->listRules as $rule) {
-            $elem = $rule['Элемент'];
+            if ($rule['Элемент'] !== $marker) continue;
+            if (!$rule['ВнутреннииПробелы']) continue;
 
-            if (!$this->matchAt($p, $elem)) continue;
-
-            $after = $p + strlen($elem);
-
-            if ($rule['ВнутреннииПробелы']) {
-                if ($after >= $this->len || $this->input[$after] !== ' ') continue;
-                $after++;
-            }
-
-            $this->pos = $after;
-
+            $this->pos = $p;
             $content = $this->readToLineEnd();
-
-            $this->addToken('list_item', $rule, $content, array('indent' => $indent));
+            $this->addToken('list_item', $rule, $content, array(
+                'indent' => $indent,
+                'level'  => $level,
+                'marker' => $marker,
+            ));
             return true;
         }
 
