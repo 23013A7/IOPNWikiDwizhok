@@ -73,7 +73,8 @@ class TreeParser {
             return;
         }
 
-        $isBlock = false;
+        $isBlock = ($rule['Тип'] === 'Блок' || $rule['Тип'] === 'МногострочныйБлок');
+
         if ($rule['Обработчик'] !== null) {
             $parts   = _li_split($token['value'], '|', -1);
             $first   = isset($parts[0]) ? trim($parts[0]) : '';
@@ -112,20 +113,48 @@ class TreeParser {
         $this->flushParagraph();
         $rule   = $token['rule'];
         $indent = isset($token['indent']) ? $token['indent'] : 0;
+        $level  = isset($token['level']) ? $token['level'] : 1;
+        $marker = isset($token['marker']) ? $token['marker'] : $rule['Элемент'];
+
+        $isMediaList = ($marker === '*' || $marker === '#');
+
+        if ($isMediaList) {
+            $listNode = null;
+            $children = $this->current->children;
+            $count = count($children);
+            if ($count > 0) {
+                $last = $children[$count - 1];
+                if ($last->attr('list_family') === 'mediawiki') {
+                    $listNode = $last;
+                }
+            }
+
+            if ($listNode === null) {
+                $listNode = new ASTNode('MediaWiki_List', '', array(
+                    'list_family' => 'mediawiki',
+                ));
+                $this->current->addChild($listNode);
+            }
+
+            $item = new ASTNode('MediaWiki_Item', $token['value'], array(
+                'rule'   => $rule,
+                'indent' => $indent,
+                'level'  => max(1, $level),
+                'marker' => $marker,
+            ));
+            $listNode->addChild($item);
+            return;
+        }
 
         $listNode = null;
         $children = $this->current->children;
-        $count    = count($children);
-
+        $count = count($children);
         if ($count > 0) {
-            $last     = $children[$count - 1];
-            $isList   = substr($last->type, -5) === '_List';
+            $last = $children[$count - 1];
+            $isList = substr($last->type, -5) === '_List';
             $sameRule = $last->attr('rule_name') === $rule['Имя'];
             $canMerge = !$rule['НеСоединятьСДругими'] || $sameRule;
-
-            if ($isList && $sameRule && $canMerge) {
-                $listNode = $last;
-            }
+            if ($isList && $sameRule && $canMerge) $listNode = $last;
         }
 
         if ($listNode === null) {
