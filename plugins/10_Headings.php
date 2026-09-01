@@ -1,10 +1,58 @@
 <?php
-HookManager::register('parse_text', function($text) {
-    $text = preg_replace('/^====== (.+?) ======\r?$/m', '<h6>$1</h6>', $text);
-    $text = preg_replace('/^===== (.+?) =====\r?$/m',  '<h5>$1</h5>', $text);
-    $text = preg_replace('/^==== (.+?) ====\r?$/m',    '<h4>$1</h4>', $text);
-    $text = preg_replace('/^=== (.+?) ===\r?$/m',      '<h3>$1</h3>', $text);
-    $text = preg_replace('/^== (.+?) ==\r?$/m',        '<h2>$1</h2>', $text);
-    $text = preg_replace('/^= (.+?) =\r?$/m',          '<h1>$1</h1>', $text);
-    return $text;
-}, 10);
+function plugin_manifest_10_Headings() {
+    return [
+        'name'        => 'Заголовки',
+        'description' => 'Добавляет заголовки = ... = вплоть до шестого уровня',
+        'version'     => '1.0.0',
+        'author'      => 'ИОПН',
+        'priority'    => 10,
+    ];
+}
+
+RuleRegistry::add('Заголовок6', [
+    'Тип'               => 'Блок',
+    'Элемент'           => '======',
+    'Результат'         => '<h6>',
+    'Приоритет'         => 10,
+    'TrimInnerSpaces'   => true,
+]);
+
+RuleRegistry::add('Заголовок5', [
+    'Тип'               => 'Блок',
+    'Элемент'           => '=====',
+    'Результат'         => '<h5>',
+    'Приоритет'         => 10,
+    'TrimInnerSpaces'   => true,
+]);
+
+RuleRegistry::add('Заголовок4', [
+    'Тип'               => 'Блок',
+    'Элемент'           => '====',
+    'Результат'         => '<h4>',
+    'Приоритет'         => 10,
+    'TrimInnerSpaces'   => true,
+]);
+
+RuleRegistry::add('Заголовок3', [
+    'Тип'               => 'Блок',
+    'Элемент'           => '===',
+    'Результат'         => '<h3>',
+    'Приоритет'         => 10,
+    'TrimInnerSpaces'   => true,
+]);
+
+RuleRegistry::add('Заголовок2', [
+    'Тип'               => 'Блок',
+    'Элемент'           => '==',
+    'Результат'         => '<h2>',
+    'Приоритет'         => 10,
+    'TrimInnerSpaces'   => true,
+]);
+
+RuleRegistry::add('Заголовок1', [
+    'Тип'               => 'Блок',
+    'Элемент'           => '=',
+    'Результат'         => '<h1>',
+    'Приоритет'         => 10,
+    'TrimInnerSpaces'   => true,
+]);
