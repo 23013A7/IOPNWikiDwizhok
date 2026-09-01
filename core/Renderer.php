@@ -37,6 +37,10 @@ class Renderer {
     private function renderNode(ASTNode $node) {
         $rule = $node->attr('rule');
 
+        if ($node->attr('list_family') === 'mediawiki') {
+            return $this->renderMediaWikiList($node);
+        }
+
         if ($rule && substr($node->type, -5) === '_List') {
             return $this->renderList($node, $rule);
         }
@@ -214,6 +218,61 @@ class Renderer {
             $html .= $rule['Результат'] . $inner . $rule['КонечныйРезультат'] . "\n";
         }
         $html .= $rule['КонечнаяОбёртка'] . "\n";
+        return $html;
+    }
+
+    private function renderMediaWikiList(ASTNode $node) {
+        $items = $node->children;
+        $i = 0;
+        return $this->renderMediaWikiLevel($items, $i, 1, null);
+    }
+
+    private function renderMediaWikiLevel($items, &$i, $level, $forcedType) {
+        $count = count($items);
+        if ($i >= $count) return '';
+
+        $firstLevel = $items[$i]->attr('level', 1);
+        if ($firstLevel < $level) return '';
+        if ($firstLevel > $level) $level = $firstLevel;
+
+        $marker = $items[$i]->attr('marker', '*');
+        $type = ($marker === '#') ? 'ol' : 'ul';
+        if ($forcedType !== null) $type = $forcedType;
+
+        $html = '<' . $type . ">\n";
+
+        while ($i < $count) {
+            $item = $items[$i];
+            $itemLevel = max(1, (int)$item->attr('level', 1));
+            if ($itemLevel < $level) break;
+            if ($itemLevel > $level) {
+                $itemLevel = $level;
+            }
+
+            $itemMarker = $item->attr('marker', '*');
+            $itemType = ($itemMarker === '#') ? 'ol' : 'ul';
+
+            if ($itemType !== $type) {
+                $html .= '</' . $type . ">\n";
+                $html .= $this->renderMediaWikiLevel($items, $i, $level, null);
+                return $html;
+            }
+
+            $inner = $this->parseInline($item->value);
+            $html .= '<li>' . $inner;
+            $i++;
+
+            if ($i < $count) {
+                $nextLevel = max(1, (int)$items[$i]->attr('level', 1));
+                if ($nextLevel > $level) {
+                    $html .= "\n" . $this->renderMediaWikiLevel($items, $i, $level + 1, null);
+                }
+            }
+
+            $html .= '</li>' . "\n";
+        }
+
+        $html .= '</' . $type . ">\n";
         return $html;
     }
 
