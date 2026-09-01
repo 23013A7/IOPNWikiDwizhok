@@ -15,12 +15,18 @@ class Renderer {
             case ASTNode::TYPE_PARAGRAPH:
                 $inner = trim($this->renderChildren($node));
                 if ($inner === '') return '';
-                $isBlock = strncmp($inner, '<div', 4) === 0
-                    || strncmp($inner, '<table', 6) === 0
-                    || strncmp($inner, '<ul', 3) === 0
-                    || strncmp($inner, '<ol', 3) === 0
-                    || strncmp($inner, '<blockquote', 11) === 0;
-                if ($isBlock) return $inner . "\n";
+                $hasOnlyBlock = false;
+                if (count($node->children) === 1) {
+                    $child = $node->children[0];
+                    $type  = $child->type;
+                    if (substr($type, -5) === '_List'
+                        || $type === 'Таблица'
+                        || $type === ASTNode::TYPE_RAW
+                    ) {
+                        $hasOnlyBlock = true;
+                    }
+                }
+                if ($hasOnlyBlock) return $inner . "\n";
                 return '<p>' . $inner . '</p>' . "\n";
 
             default:
