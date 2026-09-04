@@ -11,7 +11,6 @@ class RuleRegistry {
         'Block'                 => 'Блок',
         'MultilineBlock'        => 'МногострочныйБлок',
         'List'                  => 'Список',
-
         'Token'                 => 'Элемент',
         'Element'               => 'Элемент',
         'CloseToken'            => 'КонечныйЭлемент',
@@ -25,7 +24,6 @@ class RuleRegistry {
         'Priority'              => 'Приоритет',
         'Aliases'               => 'Алиасы',
         'Handler'               => 'Обработчик',
-
         'OnlyStart'             => 'РежимЛишьНачала',
         'StartOnly'             => 'РежимЛишьНачала',
         'InnerSpaces'           => 'ВнутреннииПробелы',
@@ -36,7 +34,6 @@ class RuleRegistry {
         'MarkdownLists'         => 'РежимМаркдавэнСписков',
         'NoMerge'               => 'НеСоединятьСДругими',
         'NoMergeWithOthers'     => 'НеСоединятьСДругими',
-
         'Args'                  => 'Аргументы',
         'Arguments'             => 'Аргументы',
         'ArgSeparator'          => 'РазделительАргументов',
@@ -49,7 +46,6 @@ class RuleRegistry {
         'DefaultArgs'           => 'ЗначенияАргументов',
     );
 
-    // Алиасы значений типа (английское → русское)
     private static $typeAliases = array(
         'Inline'         => 'Строка',
         'String'         => 'Строка',
@@ -58,6 +54,7 @@ class RuleRegistry {
         'Multiline'      => 'МногострочныйБлок',
         'List'           => 'Список',
     );
+
     public static function add($name, array $rule) {
         $rule = self::translateKeys($rule);
         self::$rules[$name] = self::normalize($name, $rule);
@@ -78,6 +75,7 @@ class RuleRegistry {
 
     public static function has($name)    { return isset(self::$rules[$name]); }
     public static function getNames()    { return array_keys(self::$rules); }
+    
     public static function reset() {
         self::$rules = self::$compiled_rules = array();
         self::$compiled = false;
@@ -117,14 +115,12 @@ class RuleRegistry {
             'Приоритет'                  => isset($rule['Приоритет'])               ? (int)$rule['Приоритет']        : 50,
             'Алиасы'                     => isset($rule['Алиасы'])                  ? (array)$rule['Алиасы']         : array(),
             'Обработчик'                 => isset($rule['Обработчик']) && is_callable($rule['Обработчик']) ? $rule['Обработчик'] : null,
-
             'РежимЛишьНачала'            => !empty($rule['РежимЛишьНачала']),
             'ВнутреннииПробелы'          => !empty($rule['ВнутреннииПробелы']),
             'УбиратьВнутренниеПробелы'   => !empty($rule['УбиратьВнутренниеПробелы']),
             'РежимМаркдавэнСписков'      => !empty($rule['РежимМаркдавэнСписков']),
             'ПрекратитьОбработку'        => !empty($rule['ПрекратитьОбработку']),
             'НеСоединятьСДругими'        => !empty($rule['НеСоединятьСДругими']),
-
             'Аргументы'                  => !empty($rule['Аргументы']),
             'РазделительАргументов'      => isset($rule['РазделительАргументов'])   ? $rule['РазделительАргументов'] : '|',
             'ЧислоАргументов'            => isset($rule['ЧислоАргументов'])          ? (int)$rule['ЧислоАргументов']  : -1,
@@ -135,7 +131,7 @@ class RuleRegistry {
 
     private static function inferClosingTag($openTag) {
         if (empty($openTag)) return '';
-      
+
         $len  = strlen($openTag);
         $i    = 0;
         while ($i < $len && $openTag[$i] !== '<') $i++;
