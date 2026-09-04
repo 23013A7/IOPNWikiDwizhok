@@ -5,7 +5,6 @@
     <title>ИОПН — Энциклопедия <?= htmlspecialchars($NamePage) ?></title>
     <link rel="stylesheet" href="assets/skin/iopnwiki/style.css">
     <link rel="shortcut icon" href="assets/skin/iopnwiki/Enziclopedia.ico">
-<!-- Опен граф -->
     <meta name="theme-color" content="#FECC6D">
     <meta property="og:type" content="website">
     <meta property="og:url" content="http://iopn.ddns.net/Энциклопедия">
@@ -30,7 +29,12 @@
                         <li><a href="?Page=Главная страница">Главная страница</a></li>
                         <li><a href="?Page=Служебная:Поиск">Поиск</a></li>
                         <li><a href="Random.php">Cлучайная страница</a></li>
-                        <li><a href="?Page=Редактировать">Редактировать</a></li>
+                        <?php if (!empty($settings['AllowEditing']) && !Editor::metaBool(isset($meta_data['protected']) ? $meta_data['protected'] : false)): ?>
+                        <li><a href="?Page=<?= rawurlencode($FullPageName) ?>&amp;machen=edit">Редактировать</a></li>
+                        <?php endif; ?>
+                        <?php if (!empty($settings['AllowSource']) && !Editor::metaBool(isset($meta_data['source_protected']) ? $meta_data['source_protected'] : false) && is_file($target_file)): ?>
+                        <li><a href="?Page=<?= rawurlencode($FullPageName) ?>&amp;machen=source">Исходник</a></li>
+                        <?php endif; ?>
                     </ul>
                 </nav>
                 <nav class="mobile">
@@ -44,9 +48,9 @@
                         <li><a href="Random.php"><svg width="40px" height="80%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
  <path d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15849 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13M12 17H12.01M7.8 21H16.2C17.8802 21 18.7202 21 19.362 20.673C19.9265 20.3854 20.3854 19.9265 20.673 19.362C21 18.7202 21 17.8802 21 16.2V7.8C21 6.11984 21 5.27976 20.673 4.63803C20.3854 4.07354 19.9265 3.6146 19.362 3.32698C18.7202 3 17.8802 3 16.2 3H7.8C6.11984 3 5.27976 3 4.63803 3.32698C4.07354 3.6146 3.6146 4.07354 3.32698 4.63803C3 5.27976 3 6.11984 3 7.8V16.2C3 17.8802 3 18.7202 3.32698 19.362C3.6146 19.9265 4.07354 20.3854 4.63803 20.673C5.27976 21 6.11984 21 7.8 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
  </svg></a></li>
-                        <li><a href="?Page=Редактировать"><svg width="40px" height="80%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <?php if (!empty($settings['AllowEditing']) && !Editor::metaBool(isset($meta_data['protected']) ? $meta_data['protected'] : false)): ?><li><a href="?Page=<?= rawurlencode($FullPageName) ?>&amp;machen=edit"><svg width="40px" height="80%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
  <path d="M12 20H21M3.00003 20H4.67457C5.16376 20 5.40835 20 5.63852 19.9447C5.84259 19.8957 6.03768 19.8149 6.21663 19.7053C6.41846 19.5816 6.59141 19.4086 6.93732 19.0627L19.5001 6.49998C20.3285 5.67156 20.3285 4.32841 19.5001 3.49998C18.6716 2.67156 17.3285 2.67156 16.5001 3.49998L3.93729 16.0627C3.59139 16.4086 3.41843 16.5816 3.29475 16.7834C3.18509 16.9624 3.10428 17.1574 3.05529 17.3615C3.00003 17.5917 3.00003 17.8363 3.00003 18.3255V20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
- </svg></a></li>
+ </svg></a></li><?php endif; ?>
                     </ul>
                 </nav>
             </div>
@@ -58,7 +62,7 @@
                 <?= htmlspecialchars($NamePage) ?>
                 
                 <span class="info">
-                    <svg class="icon" width=30px height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="icon" width=30px viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 16V12M12 8H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <div class="info-panel right" style="min-width: 250px; padding: 15px;">
