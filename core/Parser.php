@@ -2,9 +2,7 @@
 class Parser {
 
     private $tokenizer;
-
     private $treeParser;
-
     private $renderer;
 
     private $allowedTags = array(
@@ -66,7 +64,7 @@ class Parser {
         $input = HookManager::apply('parse_before', $input);
 
         $tokens = $this->tokenizer->tokenize($input);
-        
+
         $tokens = HookManager::apply('parse_tokens', $tokens);
 
         $ast = $this->treeParser->build($tokens);
