@@ -7,13 +7,9 @@ class ASTNode {
     const TYPE_PARAGRAPH = 'Paragraph';
 
     public $type;
-
     public $children = array();
-
     public $parent = null;
-  
     public $attrs = array();
-
     public $value = '';
 
     public function __construct($type, $value = '', $attrs = array()) {
