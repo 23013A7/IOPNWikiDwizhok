@@ -2,11 +2,8 @@
 class PluginLoader {
 
     private static $loaded   = array();
-
     private static $skipped  = array();
-
     private static $failed   = array();
-
     private static $warnings = array();
 
     public static function loadAll($global_dir, $site_dir, $settings = array()) {
