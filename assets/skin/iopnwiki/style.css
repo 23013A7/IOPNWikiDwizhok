@@ -21,6 +21,8 @@
     font-size: 42px;
     border-bottom: 1px solid gray;
     margin: 16px 0px;
+    font-family: Minipax;
+    font-variant-numeric: lining-nums;
 }
 
 .content h2 {
@@ -28,6 +30,13 @@
     font-size: 26px;
     border-bottom: 1px solid gray;
     margin: 16px 0px;
+    font-family: Minipax;
+    font-variant-numeric: lining-nums;
+}
+
+h3, h4, h5, h6 {
+    font-family: Minipax;
+    font-variant-numeric: lining-nums;
 }
 /* Параграф */
 .content p {
@@ -62,6 +71,35 @@ em {
 /* Сылки */
 a {
     color: rgb(42, 86, 143)
+}
+
+.wikitable {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.wikitable caption {
+    font-family: 'Minipax', 'Tinos', 'Times New Roman', Times, 'Baskerville', 'Georgia', serif;
+}
+
+.wikitable th,
+.wikitable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.wikitable th {
+    background-color: #f2f2f2;
+    cursor: pointer;
+}
+
+.wikitable th:hover {
+    background-color: #ddd;
+}
+
+.wikitable tr:nth-child(even) {
+    background-color: #f9f9f9;
 }
 
 .image {
@@ -158,3 +196,16 @@ a {
         color: hsl(214, 55%, 64%)
     }
 }
+
+.iopn-editor { width: 100%; }
+.iopn-editor-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.iopn-editor-button, .iopn-editor-primary, .iopn-editor-secondary { font: inherit; padding: 7px 12px; border: 1px solid #bbb; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; box-sizing: border-box; }
+.iopn-editor-primary { background: #eee; font-weight: 600; }
+.iopn-editor-text { width: 100%; min-height: 420px; box-sizing: border-box; resize: vertical; padding: 12px; font: 14px/1.5 monospace; border: 1px solid #aaa; border-radius: 4px; }
+.iopn-editor-meta { margin: 16px 0; padding: 12px; border: 1px solid #ccc; }
+.iopn-editor-help { margin-top: 0; opacity: .75; }
+.iopn-meta-row { display: grid; grid-template-columns: minmax(120px, .7fr) minmax(180px, 1.4fr) auto; gap: 8px; margin: 7px 0; align-items: center; }
+.iopn-meta-row input[type=text] { min-width: 0; padding: 7px; box-sizing: border-box; }
+.iopn-editor-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.iopn-editor-message { padding: 10px; margin-bottom: 12px; border: 1px solid #bbb; border-radius: 4px; }
+@media (max-width: 650px) { .iopn-meta-row { grid-template-columns: 1fr; } }
