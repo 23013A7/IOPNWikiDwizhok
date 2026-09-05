@@ -190,3 +190,9 @@ function _li_render_image($src, $params) {
     $html .= '</div>';
     return $html;
 }
+
+HookManager::register('editor_buttons', function($buttons, $context) {
+    $buttons[] = array('id' => 'internal-link', 'label' => 'Ссылка', 'title' => 'Вставить внутреннюю ссылку', 'insert' => '[[{{selection}}]]');
+    $buttons[] = array('id' => 'image', 'label' => 'Изображение', 'title' => 'Вставить изображение', 'insert' => '[[File:имя-файла.jpg]]');
+    return $buttons;
+}, 40);
