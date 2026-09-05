@@ -56,3 +56,9 @@ RuleRegistry::add('Заголовок1', [
     'Приоритет'         => 10,
     'TrimInnerSpaces'   => true,
 ]);
+
+HookManager::register('editor_buttons', function($buttons, $context) {
+    $buttons[] = array('id' => 'heading2', 'label' => 'H2', 'title' => 'Вставить заголовок 2 уровня', 'insert' => "== {{selection}} ==");
+    $buttons[] = array('id' => 'heading3', 'label' => 'H3', 'title' => 'Вставить заголовок 3 уровня', 'insert' => "=== {{selection}} ===");
+    return $buttons;
+}, 10);
