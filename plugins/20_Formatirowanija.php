@@ -39,3 +39,19 @@ RuleRegistry::add('ГоризонтальнаяЛиния', [
     'Приоритет'         => 20,
     'РежимЛишьНачала'   => true,
 ]);
+
+HookManager::register('editor_buttons', function($buttons, $context) {
+    $buttons[] = array(
+        'id' => 'bold',
+        'label' => 'Жирный',
+        'title' => 'Выделить жирным',
+        'insert' => "'''{{selection}}'''",
+    );
+    $buttons[] = array(
+        'id' => 'italic',
+        'label' => 'Курсив',
+        'title' => 'Выделить курсивом',
+        'insert' => "''{{selection}}''",
+    );
+    return $buttons;
+}, 20);
