@@ -218,3 +218,13 @@ function _table_parse_inline($text) {
     }
     return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
+
+HookManager::register('editor_buttons', function($buttons, $context) {
+    $buttons[] = array(
+        'id' => 'table',
+        'label' => 'Таблица',
+        'title' => 'Вставить таблицу',
+        'insert' => "{| class=\"wikitable\"\n|-\n! Заголовок 1 !! Заголовок 2\n|-\n| Ячейка 1 || Ячейка 2\n|}",
+    );
+    return $buttons;
+}, 45);
