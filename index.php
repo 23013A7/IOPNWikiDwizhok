@@ -29,22 +29,27 @@
     require_once 'core/Renderer.php';
     require_once 'core/Parser.php';
     require_once 'core/Editor.php';
+    require_once 'core/NamespaceRegistry.php';
+    require_once 'core/PageIndex.php';
     require_once 'core/PluginLoader.php';
 
+    NamespaceRegistry::init($settings);
+    NamespaceRegistry::refresh(__DIR__ . '/Pages');
+    PageIndex::init(__DIR__ . '/Pages');
+
     PluginLoader::load(__DIR__ . '/plugins');
+
+    HookManager::fire('wiki_init', array(
+        'settings' => $settings,
+        'pages_dir' => __DIR__ . '/Pages',
+    ));
 
     $NamePage = isset($_GET['Page']) ? $_GET['Page'] : '';
     if ($NamePage === '') $NamePage = 'Главная страница';
 
-    if (strpos($NamePage, ':') !== false) {
-        list($namespace, $pagename) = explode(':', $NamePage, 2);
-    } else {
-        $namespace = '';
-        $pagename  = $NamePage;
-    }
-
-    $namespace = preg_replace('/[^a-zA-Zа-яёА-ЯЁ0-9_\- \p{Greek}]/u', '', $namespace);
-    $pagename  = preg_replace('/[^a-zA-Zа-яёА-ЯЁ0-9_\- —№.,() \p{Greek}]/u', '', $pagename);
+    $pageParts = PageIndex::splitPage($NamePage);
+    $namespace = $pageParts['namespace'];
+    $pagename  = $pageParts['name'];
 
     if (empty($pagename)) {
         $namespace = 'Служебная';
