@@ -33,14 +33,45 @@ class Parser {
     );
 
     private $blockedProtocols = array('javascript', 'data', 'vbscript');
+    private $baseAllowedTags = array();
+    private $pluginAddedTags = array();
+    private $allowHTML = true;
+    private $allowPluginHTML = true;
+    private $rawHTML = array();
 
-    public function __construct() {
+    public function __construct($settings = array()) {
         $this->tokenizer  = new Tokenizer();
         $this->treeParser = new TreeParser();
         $this->renderer   = new Renderer();
 
+        if (is_array($settings)) {
+            if (isset($settings['AllowHTML'])) {
+                $this->allowHTML = (bool)$settings['AllowHTML'];
+            }
+            if (isset($settings['AllowPluginHTML'])) {
+                $this->allowPluginHTML = (bool)$settings['AllowPluginHTML'];
+            }
+        }
+
+        $this->baseAllowedTags = $this->allowedTags;
+
         $this->allowedTags  = HookManager::apply('parser_allowed_tags',  $this->allowedTags);
+        foreach ($this->allowedTags as $tag) {
+            if (!in_array($tag, $this->baseAllowedTags)) {
+                $this->pluginAddedTags[] = strtolower($tag);
+            }
+        }
         $this->allowedAttrs = HookManager::apply('parser_allowed_attrs', $this->allowedAttrs);
+
+        if (!$this->allowPluginHTML && !empty($this->pluginAddedTags)) {
+            $filtered = array();
+            foreach ($this->allowedTags as $tag) {
+                if (!in_array(strtolower($tag), $this->pluginAddedTags)) {
+                    $filtered[] = $tag;
+                }
+            }
+            $this->allowedTags = $filtered;
+        }
 
         foreach ($this->allowedTags as $tag) {
             if (!isset($this->allowedAttrs[$tag])) {
@@ -63,6 +94,8 @@ class Parser {
 
         $input = HookManager::apply('parse_before', $input);
 
+        $input = $this->protectRawHTML($input);
+
         $tokens = $this->tokenizer->tokenize($input);
 
         $tokens = HookManager::apply('parse_tokens', $tokens);
@@ -74,6 +107,8 @@ class Parser {
         $html = $this->renderer->render($ast);
 
         $html = HookManager::apply('parse_after', $html);
+
+        $html = $this->restoreRawHTML($html);
 
         $html = $this->sanitize($html);
 
@@ -90,6 +125,53 @@ class Parser {
     public function debugTokens($input) {
         $input = str_replace(array("\r\n", "\r"), "\n", $input);
         return $this->tokenizer->tokenize($input);
+    }
+
+    private function protectRawHTML($input) {
+        $this->rawHTML = array();
+
+        if (!$this->allowHTML) return $input;
+
+        $pattern = '/<\/?[a-zA-Z][a-zA-Z0-9:-]*(?:\s+[a-zA-Z_:][a-zA-Z0-9_.:-]*(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?)*\s*\/?>/u';
+        $self = $this;
+
+        return preg_replace_callback($pattern, function($m) use ($self) {
+            $tag = $m[0];
+            if (!$self->isRawHTMLTagAllowedForProcessing($tag)) return $tag;
+
+            $id = count($self->rawHTML);
+            $self->rawHTML[$id] = $tag;
+            return 'IOPNRAWHTMLTAG' . $id . 'X';
+        }, $input);
+    }
+
+    private function isRawHTMLTagAllowedForProcessing($tag) {
+        if (!$this->allowHTML) return false;
+
+        if (!preg_match('/^<\/?([a-zA-Z][a-zA-Z0-9:-]*)/u', $tag, $m)) {
+            return false;
+        }
+
+        $name = strtolower($m[1]);
+        if (in_array($name, $this->baseAllowedTags)) return true;
+        if ($this->allowPluginHTML && in_array($name, $this->pluginAddedTags)) return true;
+
+        return true;
+    }
+
+    private function restoreRawHTML($html) {
+        if (empty($this->rawHTML)) return $html;
+
+        foreach ($this->rawHTML as $id => $tag) {
+            $marker = 'IOPNRAWHTMLTAG' . $id . 'X';
+            $html = str_replace(
+                array($marker, htmlspecialchars($marker, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')),
+                $tag,
+                $html
+            );
+        }
+
+        return $html;
     }
 
     private function sanitize($html) {
