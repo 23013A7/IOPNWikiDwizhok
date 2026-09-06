@@ -94,10 +94,6 @@ a {
     cursor: pointer;
 }
 
-.wikitable th:hover {
-    background-color: #ddd;
-}
-
 .wikitable tr:nth-child(even) {
     background-color: #f9f9f9;
 }
@@ -194,6 +190,27 @@ a {
 @media (prefers-color-scheme: dark) {
     a {
         color: hsl(214, 55%, 64%)
+    }
+    .wikitable {color: var(--TextColor)}
+    .wikitable th,
+    .wikitable td {
+        border: 1px solid #dddddd29;
+        padding: 8px;
+        text-align: left;
+    }
+
+    .wikitable th {
+        background-color: #dddddd0d;
+        cursor: pointer;
+    }
+
+    .wikitable tr:nth-child(even) {
+        background-color: #f9f9f90d;
+    }
+
+    .image-description {
+    background-color: #222329;
+    color: #d7d7d7;
     }
 }
 
