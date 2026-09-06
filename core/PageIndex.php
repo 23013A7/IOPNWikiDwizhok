@@ -42,6 +42,10 @@ class PageIndex {
         return false;
     }
 
+    public static function getIndex() {
+        return self::read();
+    }
+
     public static function all() {
         $index = self::read();
         return $index['pages'];
