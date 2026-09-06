@@ -32,9 +32,6 @@
                         <?php if (!empty($settings['AllowEditing']) && !Editor::metaBool(isset($meta_data['protected']) ? $meta_data['protected'] : false)): ?>
                         <li><a href="?Page=<?= rawurlencode($FullPageName) ?>&amp;machen=edit">Редактировать</a></li>
                         <?php endif; ?>
-                        <?php if (!empty($settings['AllowSource']) && !Editor::metaBool(isset($meta_data['source_protected']) ? $meta_data['source_protected'] : false) && is_file($target_file)): ?>
-                        <li><a href="?Page=<?= rawurlencode($FullPageName) ?>&amp;machen=source">Исходник</a></li>
-                        <?php endif; ?>
                     </ul>
                 </nav>
                 <nav class="mobile">
