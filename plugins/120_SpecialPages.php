@@ -30,31 +30,54 @@ SpecialPageRegistry::register('Все страницы', function($context) {
         $name = isset($data['name']) ? $data['name'] : $full;
         $namespace = isset($data['namespace']) ? $data['namespace'] : '';
         $meta = isset($data['meta']) && is_array($data['meta']) ? $data['meta'] : array();
-        $rows[] = array($full, $name, $namespace, $meta);
+        $rows[] = array(
+            'full'      => $full,
+            'name'      => $name,
+            'namespace' => $namespace,
+            'meta'      => $meta,
+        );
     }
 
     usort($rows, function($a, $b) {
-        return strcasecmp($a[0], $b[0]);
+        return strcasecmp($a['full'], $b['full']);
     });
 
-    $html  = '<h2>Все страницы</h2>';
+    $html  = '';
     $html .= '<p>Всего страниц: <strong>' . count($rows) . '</strong></p>';
-    $html .= '<table class="article-table">';
-    $html .= '<thead><tr><th>Страница</th><th>Имя</th><th>Пространство имён</th></tr></thead><tbody>';
-
-    foreach ($rows as $row) {
-        $full = $row[0];
-        $namespace = $row[2] === '' ? 'Основное' : $row[2];
-        $href = '?Page=' . rawurlencode($full);
-        $html .= '<tr>';
-        $html .= '<td><a href="' . iopn_special_h($href) . '">' . iopn_special_h($full) . '</a></td>';
-        $html .= '<td>' . iopn_special_h($row[1]) . '</td>';
-        $html .= '<td>' . iopn_special_h($namespace) . '</td>';
-        $html .= '</tr>';
-    }
+    $html .= '<table class="wikitable">';
+    $html .= '<thead><tr>';
+    $html .= '<th>Название</th>';
+    $html .= '<th>Просмотры</th>';
+    $html .= '<th>Дата создания</th>';
+    $html .= '<th>Дата обновления</th>';
+    $html .= '<th>Автор</th>';
+    $html .= '<th>Версия</th>';
+    $html .= '</tr></thead><tbody>';
 
     if (empty($rows)) {
-        $html .= '<tr><td colspan="3">В индексе пока нет страниц.</td></tr>';
+        $html .= '<tr><td colspan="6">В индексе пока нет страниц.</td></tr>';
+    } else {
+        foreach ($rows as $row) {
+            $full      = $row['full'];
+            $meta      = $row['meta'];
+
+            $views      = isset($meta['views'])       ? (int)$meta['views']       : 0;
+            $create     = isset($meta['data_create']) ? (string)$meta['data_create'] : '';
+            $update     = isset($meta['data_update']) ? (string)$meta['data_update'] : '';
+            $author     = isset($meta['author'])      ? (string)$meta['author']      : '';
+            $version    = isset($meta['version'])     ? (int)$meta['version']        : 0;
+
+            $href = '?Page=' . rawurlencode($full);
+
+            $html .= '<tr>';
+            $html .= '<td><a href="' . iopn_special_h($href) . '">' . iopn_special_h($full) . '</a></td>';
+            $html .= '<td>' . $views . '</td>';
+            $html .= '<td>' . iopn_special_h($create) . '</td>';
+            $html .= '<td>' . iopn_special_h($update) . '</td>';
+            $html .= '<td>' . iopn_special_h($author) . '</td>';
+            $html .= '<td>' . $version . '</td>';
+            $html .= '</tr>';
+        }
     }
 
     $html .= '</tbody></table>';
@@ -70,11 +93,10 @@ SpecialPageRegistry::register('Плагины', function($context) {
     $failed  = PluginLoader::getFailed();
     $warnings = PluginLoader::getWarnings();
 
-    $html  = '<h2>Плагины</h2>';
-    $html .= '<p>Загружено: <strong>' . count($loaded) . '</strong>';
+    $html = '<p>Загружено: <strong>' . count($loaded) . '</strong>';
     $html .= ' &nbsp; Ошибок: <strong>' . count($failed) . '</strong></p>';
 
-    $html .= '<table class="article-table">';
+    $html .= '<table class="wikitable">';
     $html .= '<thead><tr><th>Плагин</th><th>Версия</th><th>Автор</th><th>Приоритет</th><th>Описание</th></tr></thead><tbody>';
 
     foreach ($loaded as $fileName => $item) {
