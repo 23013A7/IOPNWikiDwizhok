@@ -31,6 +31,7 @@
     require_once 'core/Editor.php';
     require_once 'core/NamespaceRegistry.php';
     require_once 'core/PageIndex.php';
+    require_once 'core/SpecialPageRegistry.php';
     require_once 'core/PluginLoader.php';
 
     NamespaceRegistry::init($settings);
@@ -74,6 +75,28 @@
 
     $FullPageName = $namespace !== '' ? $namespace . ':' . $pagename : $pagename;
     $machen = isset($_GET['machen']) ? $_GET['machen'] : '';
+
+    if ($namespace === 'Служебная' && $machen !== 'edit' && $machen !== 'source') {
+        $special = SpecialPageRegistry::render($pagename, array(
+            'page'           => $FullPageName,
+            'pagename'       => $pagename,
+            'namespace'      => $namespace,
+            'settings'       => $settings,
+            'request_method' => isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET',
+        ));
+
+        if ($special !== null) {
+            $NamePage = $FullPageName;
+            $meta_data = array('special_page' => true);
+            $content_wiki = $special['html'];
+            $open_grab = strip_tags($content_wiki);
+            $target_file = '';
+            $file_a = null;
+            $editor_mode = false;
+            require_once("assets/skin/" . $current_skin . "/index.php");
+            return;
+        }
+    }
 
     $target_file = $namespace !== ''
         ? $base_dir . '/' . $namespace . '/' . $pagename . '.iopnwiki'
@@ -224,13 +247,13 @@
 
     if (!$editor_mode) {
         HookManager::fire('page_view', array(
-            'file'      => $file_a,
-            'meta'      => $meta_data,
-            'meta_ref'  => &$meta_data,
-            'page'      => $FullPageName,
-            'pagename'  => $pagename,
-            'namespace' => $namespace,
-        ));
+        'file'      => $file_a,
+        'meta'      => $meta_data,
+        'meta_ref'  => &$meta_data,
+        'page'      => $FullPageName,
+        'pagename'  => $pagename,
+        'namespace' => $namespace,
+    ));
     }
 
     $parser       = new Parser();
