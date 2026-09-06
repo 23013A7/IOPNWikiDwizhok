@@ -1,4 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Domine&family=Geologica:wght,CRSV@300,1&family=Oranienbaum&display=swap');
+@font-face {
+  font-family: 'Minipax';
+  src: url('Minipax-Regular.ttf') format('truetype');
+  font-weight: normal; /* или 400 */
+  font-style: normal;
+}
+
+/* Подключаем жирное начертание */
+@font-face {
+  font-family: 'Minipax';
+  src: url('Minipax-Bold.ttf') format('truetype');
+  font-weight: bold; /* или 700 */
+  font-style: normal;
+}
 
 * {
     margin: 0;
