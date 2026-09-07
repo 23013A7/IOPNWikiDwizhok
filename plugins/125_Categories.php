@@ -171,9 +171,6 @@ HookManager::register('editor_before_save', function($data) {
 }, 20);
 
 HookManager::register('parse_before', function($text) {
-    if (!isset($GLOBALS['_iopn_category_parse_depth'])) $GLOBALS['_iopn_category_parse_depth'] = 0;
-    $GLOBALS['_iopn_category_parse_depth']++;
-
     $pattern = '/\\[\\[\\s*(?:Категория|Category|Кат)\\s*:\\s*([^\\]]+)\\]\\]/ui';
     return preg_replace_callback($pattern, function($m) {
         static $counter = 0;
@@ -182,10 +179,11 @@ HookManager::register('parse_before', function($text) {
     }, (string)$text);
 }, 15);
 
-HookManager::register('parse_after', function($html) {
-    if (!isset($GLOBALS['_iopn_category_parse_depth'])) $GLOBALS['_iopn_category_parse_depth'] = 1;
-    $depth = $GLOBALS['_iopn_category_parse_depth'];
-    $GLOBALS['_iopn_category_parse_depth'] = max(0, $depth - 1);
+HookManager::register('parse_after', function($html, $context) {
+    $depth = 1;
+    if (is_array($context) && isset($context['parse_depth'])) {
+        $depth = (int)$context['parse_depth'];
+    }
 
     $html = preg_replace('/IOPNCATMARK[0-9]+X/', '', (string)$html);
 
@@ -196,7 +194,8 @@ HookManager::register('parse_after', function($html) {
 
     if ($parts['namespace'] === 'Категория' && $parts['name'] !== '') {
         $members = iopn_category_members($parts['name']);
-        $block = '<p>Количество: <strong>' . count($members) . '</strong></p>';
+        $block = '';
+        $block .= '<p>Количество: <strong>' . count($members) . '</strong></p>';
         if (!empty($members)) {
             $block .= '<ul>';
             foreach ($members as $member) {
@@ -235,7 +234,8 @@ HookManager::register('parse_after', function($html) {
 if (class_exists('SpecialPageRegistry')) {
     SpecialPageRegistry::register('Категории', function($context) {
         $categories = iopn_categories_all();
-        $html = '<p>Всего категорий: <strong>' . count($categories) . '</strong></p>';
+        $html = '';
+        $html .= '<p>Всего категорий: <strong>' . count($categories) . '</strong></p>';
 
         if (empty($categories)) {
             return $html . '<p>Категорий пока нет.</p>';
