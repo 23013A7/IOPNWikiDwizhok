@@ -38,6 +38,7 @@ class Parser {
     private $allowHTML = true;
     private $allowPluginHTML = true;
     private $rawHTML = array();
+    private static $parseDepth = 0;
 
     public function __construct($settings = array()) {
         $this->tokenizer  = new Tokenizer();
@@ -89,6 +90,9 @@ class Parser {
     public function parse($input) {
         if (empty($input)) return false;
 
+        self::$parseDepth++;
+        $currentParseDepth = self::$parseDepth;
+
         $input = str_replace("\r\n", "\n", $input);
         $input = str_replace("\r", "\n", $input);
 
@@ -106,12 +110,15 @@ class Parser {
 
         $html = $this->renderer->render($ast);
 
-        $html = HookManager::apply('parse_after', $html);
+        $html = HookManager::apply('parse_after', $html, array(
+            'parse_depth' => $currentParseDepth,
+        ));
 
         $html = $this->restoreRawHTML($html);
 
         $html = $this->sanitize($html);
 
+        self::$parseDepth = max(0, self::$parseDepth - 1);
         return $html;
     }
 
