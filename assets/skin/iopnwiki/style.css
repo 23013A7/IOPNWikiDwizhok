@@ -73,9 +73,24 @@ a {
     color: rgb(42, 86, 143)
 }
 
+.wiki-link-new {
+    color: #ba0000; /* красная ссылка — страница не существует */
+}
+.wiki-link-exists {
+    /* стандартный цвет ссылки */
+}
+.external-link::after {
+    content: '↗'; /* иконка внешней ссылки */
+    font-size: 0.75em;
+}
+
 .wikitable {
     border-collapse: collapse;
     width: 100%;
+}
+
+div .wikitable {
+    overflow: auto;
 }
 
 .wikitable caption {
