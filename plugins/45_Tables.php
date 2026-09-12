@@ -3,7 +3,7 @@ function plugin_manifest_45_Tables() {
     return [
         'name'        => 'Таблицы',
         'description' => 'Таблицы в синтаксисе MediaWiki: {| ... |}',
-        'version'     => '1.0.0',
+        'version'     => '1.0.1',
         'author'      => 'ИОПН',
     ];
 }
@@ -57,29 +57,35 @@ function _table_parse($rawText) {
         $line = $lines[$i];
         $trimmed = ltrim($line);
 
+        // Пустая строка — пропуск
         if ($trimmed === '') continue;
 
         $first = isset($trimmed[0]) ? $trimmed[0] : '';
         $second = isset($trimmed[1]) ? $trimmed[1] : '';
 
+        // |+ caption
         if ($first === '|' && $second === '+') {
             $caption = trim(substr($trimmed, 2));
             continue;
         }
 
+        // |- новая строка таблицы
         if ($first === '|' && $second === '-') {
             if ($inRow) {
                 $tbody .= '<tr>' . $rowHtml . '</tr>' . "\n";
                 $rowHtml = '';
             }
+            // Атрибуты строки (после |-)
             $rowAttrs = trim(substr($trimmed, 2));
             $inRow = true;
             continue;
         }
 
+        // ! заголовочные ячейки
         if ($first === '!') {
             if (!$inRow) { $inRow = true; }
             $cellsRaw = substr($trimmed, 1);
+            // Разбор по !! (множественные ячейки в одной строке)
             $cells = _table_split_cells($cellsRaw, '!!');
             foreach ($cells as $cell) {
                 $rowHtml .= _table_render_cell($cell, 'th');
@@ -87,9 +93,11 @@ function _table_parse($rawText) {
             continue;
         }
 
+        // | обычные ячейки
         if ($first === '|') {
             if (!$inRow) { $inRow = true; }
             $cellsRaw = substr($trimmed, 1);
+            // Разбор по || (множественные ячейки в одной строке)
             $cells = _table_split_cells($cellsRaw, '||');
             foreach ($cells as $cell) {
                 $rowHtml .= _table_render_cell($cell, 'td');
@@ -104,14 +112,15 @@ function _table_parse($rawText) {
         $tbody .= '<tr>' . $rowHtml . '</tr>' . "\n";
     }
 
-    $html = '<table' . $tableAttrs . '>' . "\n";
+    // Собираем таблицу
+    $html = '<div' . $tableAttrs . '><table' . $tableAttrs . '>' . "\n";
     if ($caption !== '') {
         $html .= '<caption>' . _table_parse_inline($caption) . '</caption>' . "\n";
     }
     if ($tbody !== '') {
         $html .= '<tbody>' . "\n" . $tbody . '</tbody>' . "\n";
     }
-    $html .= '</table>' . "\n";
+    $html .= '</table></div>' . "\n";
 
     return $html;
 }
@@ -125,6 +134,7 @@ function _table_split_cells($text, $sep) {
     $i       = 0;
 
     while ($i < $len) {
+        // Вложенные скобки
         if ($i + 1 < $len) {
             if (($text[$i] === '[' && $text[$i+1] === '[') ||
                 ($text[$i] === '{' && $text[$i+1] === '{')) {
@@ -142,6 +152,7 @@ function _table_split_cells($text, $sep) {
             }
         }
 
+        // Разделитель только на нулевой глубине
         if ($depth === 0 && substr($text, $i, $sepLen) === $sep) {
             $cells[] = $current;
             $current = '';
@@ -190,10 +201,12 @@ function _table_find_attr_pipe($text) {
                 $i += 2;
                 continue;
             }
+            // || — это разделитель ячеек, не атрибутов
             if ($depth === 0 && $text[$i] === '|' && $text[$i+1] === '|') {
                 return false;
             }
         }
+        // Одиночный |
         if ($depth === 0 && $text[$i] === '|') {
             return $i;
         }
@@ -218,7 +231,7 @@ function _table_parse_inline($text) {
     }
     return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
-
+//Редактор добавления кнопка в едитор
 HookManager::register('editor_buttons', function($buttons, $context) {
     $buttons[] = array(
         'id' => 'table',
