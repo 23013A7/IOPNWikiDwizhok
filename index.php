@@ -21,6 +21,7 @@
 
     if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
+    // Ядро — порядок важен
     require_once 'core/HookManager.php';
     require_once 'core/ASTNode.php';
     require_once 'core/RuleRegistry.php';
@@ -34,20 +35,25 @@
     require_once 'core/SpecialPageRegistry.php';
     require_once 'core/PluginLoader.php';
 
+    // Глобальные реестры. Плагины могут пользоваться ими через API.
     NamespaceRegistry::init($settings);
     NamespaceRegistry::refresh(__DIR__ . '/Pages');
     PageIndex::init(__DIR__ . '/Pages');
 
+    // Загрузка плагинов — они регистрируют правила в RuleRegistry
     PluginLoader::load(__DIR__ . '/plugins');
 
+    // После загрузки плагинов даём им точку расширения для инициализации сервисов.
     HookManager::fire('wiki_init', array(
         'settings' => $settings,
         'pages_dir' => __DIR__ . '/Pages',
     ));
 
+    //Пространства имён и путь к файлу
     $NamePage = isset($_GET['Page']) ? $_GET['Page'] : '';
     if ($NamePage === '') $NamePage = 'Главная страница';
 
+    // Нормализация имени страницы и псевдонимов пространств имён выполняется единообразно.
     $pageParts = PageIndex::splitPage($NamePage);
     $namespace = $pageParts['namespace'];
     $pagename  = $pageParts['name'];
@@ -76,6 +82,8 @@
     $FullPageName = $namespace !== '' ? $namespace . ':' . $pagename : $pagename;
     $machen = isset($_GET['machen']) ? $_GET['machen'] : '';
 
+    // Специальнные страницы
+    // Спецстранницы регистрируются плагинами и не требуют .iopnwiki-файла.
     if ($namespace === 'Служебная' && $machen !== 'edit' && $machen !== 'source') {
         $special = SpecialPageRegistry::render($pagename, array(
             'page'           => $FullPageName,
@@ -102,6 +110,7 @@
         ? $base_dir . '/' . $namespace . '/' . $pagename . '.iopnwiki'
         : $base_dir . '/' . $pagename . '.iopnwiki';
 
+    // --- Действие: просмотр исходного Wiki-текста ---
     if ($machen === 'source') {
         if (empty($settings['AllowSource'])) {
             http_response_code(403);
@@ -129,6 +138,7 @@
         exit;
     }
 
+    // --- Действие: редактирование страницы ---
     $editor_mode = ($machen === 'edit');
     $editor_error = '';
     $editor_saved = false;
@@ -164,6 +174,7 @@
                     $oldMeta = $editor_data['meta'];
                     $meta = array();
 
+                    // Метаданные редактируются динамически: можно добавлять и удалять поля.
                     if (isset($_POST['meta']) && is_array($_POST['meta'])) {
                         foreach ($_POST['meta'] as $row) {
                             if (!is_array($row)) continue;
@@ -177,6 +188,9 @@
                             }
                         }
                     }
+
+                    // Изменение служебных метаданных страницы выполняют плагины через editor_before_save.
+                    // Ядро отвечает только за редактирование текста и сохранение полученных данных.
 
                     $saveData = array(
                         'file'       => $target_file,
@@ -207,6 +221,7 @@
         }
     }
 
+    // --- Чтение файла ---
     function tschtenija($filePath) {
         $fp = fopen($filePath, 'r');
         if (!$fp) throw new Exception("Не удалось открыть файл: $filePath");
@@ -254,8 +269,20 @@
         'pagename'  => $pagename,
         'namespace' => $namespace,
     ));
+
+        // Плагин может предоставить содержимое виртуальной страницы, даже если
+        // для неё физического .iopnwiki-файла нет. Например, страницы категорий.
+        $input = HookManager::apply('page_content', $input, array(
+            'file'      => $file_a,
+            'meta'      => $meta_data,
+            'page'      => $FullPageName,
+            'pagename'  => $pagename,
+            'namespace' => $namespace,
+            'settings'  => $settings,
+        ));
     }
 
+    // --- Парсинг ---
     $parser       = new Parser();
     $content_wiki = $editor_mode ? '' : $parser->parse($input);
     $open_grab    = $editor_mode ? '' : mb_substr(strip_tags($content_wiki), 0, 160, 'UTF-8');
